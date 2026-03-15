@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
+.env
+.env.test
+uv.lock
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.env*.local
+
+# Editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Railway
+.railway/
