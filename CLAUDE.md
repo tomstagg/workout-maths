@@ -9,6 +9,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend**: Next.js 15 (TypeScript, App Router, Tailwind)
 - **Deployment**: Railway (backend and frontend as separate services, PostgreSQL as a Railway plugin)
 
+## Guiding Principles
+
+- **KISS** — Keep it simple. Prefer the straightforward solution over the clever one.
+- **DRY** — Don't repeat yourself. Extract shared logic, but only once it's actually repeated.
+- **YAGNI** — You aren't gonna need it. Don't add features, config, or abstractions speculatively.
+- **SINE** — Simple is not easy. Simplicity requires deliberate effort; resist the pull toward complexity.
+
 ## Backend
 
 Requires Python 3.12+ and [`uv`](https://docs.astral.sh/uv/getting-started/installation/).
@@ -52,13 +59,30 @@ uv run pytest tests/test_health.py::test_root         # single test
 uv run pytest --cov=app --cov-report=term-missing     # with coverage
 ```
 
+### Code Quality
+
+```bash
+cd backend
+uv run ruff check app tests        # lint (E, F, I, N, W, UP rules)
+uv run ruff format app tests       # auto-format (replaces black)
+uv run mypy app                    # static type checking
+```
+
+Run all three before committing. `ruff format` is non-negotiable; mypy findings should be
+investigated but won't always block.
+
 ### Environment variables
 
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | `postgresql+asyncpg://user:pass@host:5432/db` |
+| `TEST_DATABASE_URL` | `postgresql+asyncpg://user:pass@host:5432/test_db` |
 | `APP_ENV` | `development` / `production` |
 | `SECRET_KEY` | Generate with `openssl rand -hex 32` |
+| `ADMIN_USERNAME` | Admin login username (default: `admin`) |
+| `ADMIN_PASSWORD` | Admin login password |
+| `JWT_ALGORITHM` | JWT signing algorithm (default: `HS256`) |
+| `JWT_EXPIRE_MINUTES` | Token lifetime in minutes (default: `10080`) |
 
 ## Frontend
 
@@ -141,3 +165,17 @@ Run migrations against production:
 ```bash
 railway run --service backend uv run alembic upgrade head
 ```
+
+## Local Development with Docker
+
+```bash
+docker compose up              # start all services (postgres, backend, frontend)
+docker compose up -d postgres  # start only the database
+docker compose exec backend uv run pytest   # run tests inside the running container
+docker compose run --rm backend uv run pytest  # run tests as one-off
+```
+
+Backend: http://localhost:8000 · Frontend: http://localhost:3000
+
+On first run, `init-test-db.sql` creates the `workout_maths_test` database automatically.
+Migrations run automatically when the backend container starts.

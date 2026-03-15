@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import select, delete, func
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models.user import User, UserTablePreference
 from app.models.quiz import QuizSession
+from app.models.user import User, UserTablePreference
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -28,7 +28,9 @@ async def update_tables(
     db: AsyncSession = Depends(get_db),
 ):
     valid = {t for t in body.table_numbers if 2 <= t <= 12}
-    await db.execute(delete(UserTablePreference).where(UserTablePreference.user_id == user.id))
+    await db.execute(
+        delete(UserTablePreference).where(UserTablePreference.user_id == user.id)
+    )
     for t in valid:
         db.add(UserTablePreference(user_id=user.id, table_number=t))
     await db.commit()

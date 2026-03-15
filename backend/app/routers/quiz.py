@@ -1,5 +1,4 @@
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, update
@@ -58,27 +57,34 @@ def compute_scoring(answers: list) -> tuple[int, int, int, int]:
     return base_points, streak_bonus, base_points + streak_bonus, max_streak
 
 
-@router.post("/sessions", response_model=QuizSessionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/sessions", response_model=QuizSessionResponse, status_code=status.HTTP_201_CREATED
+)
 async def submit_quiz(
     body: QuizSubmitRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if len(body.answers) != 10:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz must have exactly 10 answers")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Quiz must have exactly 10 answers",
+        )
 
     scored = []
     for i, ans in enumerate(body.answers):
         correct = ans.table_number * ans.multiplier
-        scored.append({
-            "position": i,
-            "table_number": ans.table_number,
-            "multiplier": ans.multiplier,
-            "correct_answer": correct,
-            "selected_answer": ans.selected_answer,
-            "is_correct": ans.selected_answer == correct,
-            "answered_at": ans.answered_at,
-        })
+        scored.append(
+            {
+                "position": i,
+                "table_number": ans.table_number,
+                "multiplier": ans.multiplier,
+                "correct_answer": correct,
+                "selected_answer": ans.selected_answer,
+                "is_correct": ans.selected_answer == correct,
+                "answered_at": ans.answered_at,
+            }
+        )
 
     correct_count = sum(1 for a in scored if a["is_correct"])
     base_points, streak_bonus, total_earned, max_streak = compute_scoring(scored)
@@ -88,7 +94,7 @@ async def submit_quiz(
         user_id=user.id,
         table_numbers=table_numbers,
         started_at=body.started_at,
-        completed_at=datetime.now(timezone.utc),
+        completed_at=datetime.now(UTC),
         total_questions=10,
         correct_count=correct_count,
         duration_seconds=body.duration_seconds,
@@ -104,7 +110,9 @@ async def submit_quiz(
         db.add(QuizAnswer(session_id=session.id, **a))
 
     await db.execute(
-        update(User).where(User.id == user.id).values(total_points=User.total_points + total_earned)
+        update(User)
+        .where(User.id == user.id)
+        .values(total_points=User.total_points + total_earned)
     )
     await db.commit()
     await db.refresh(session)
@@ -140,7 +148,9 @@ async def list_sessions(
     out = []
     for s in sessions:
         ans_result = await db.execute(
-            select(QuizAnswer).where(QuizAnswer.session_id == s.id).order_by(QuizAnswer.position)
+            select(QuizAnswer)
+            .where(QuizAnswer.session_id == s.id)
+            .order_by(QuizAnswer.position)
         )
         answers = [
             AnswerResult(
@@ -154,18 +164,20 @@ async def list_sessions(
             )
             for a in ans_result.scalars().all()
         ]
-        out.append(QuizSessionResponse(
-            id=s.id,
-            table_numbers=s.table_numbers,
-            started_at=s.started_at,
-            completed_at=s.completed_at,
-            total_questions=s.total_questions,
-            correct_count=s.correct_count,
-            duration_seconds=s.duration_seconds,
-            base_points=s.base_points,
-            streak_bonus_points=s.streak_bonus_points,
-            total_points_earned=s.total_points_earned,
-            max_streak=s.max_streak,
-            answers=answers,
-        ))
+        out.append(
+            QuizSessionResponse(
+                id=s.id,
+                table_numbers=s.table_numbers,
+                started_at=s.started_at,
+                completed_at=s.completed_at,
+                total_questions=s.total_questions,
+                correct_count=s.correct_count,
+                duration_seconds=s.duration_seconds,
+                base_points=s.base_points,
+                streak_bonus_points=s.streak_bonus_points,
+                total_points_earned=s.total_points_earned,
+                max_streak=s.max_streak,
+                answers=answers,
+            )
+        )
     return out

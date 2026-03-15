@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import health
-from app.routers import auth, admin, users, quiz, leaderboard
+from app.routers import admin, auth, health, leaderboard, quiz, users
 
 app = FastAPI(title="workout-maths API")
 
