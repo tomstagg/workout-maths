@@ -31,6 +31,7 @@ services:
       JWT_EXPIRE_MINUTES: 10080
     volumes:
       - ./backend:/app
+      - /app/.venv
     ports:
       - "8000:8000"
     depends_on:
