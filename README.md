@@ -156,11 +156,35 @@ npm run dev                 # http://localhost:3000
 
 ### Tests
 
+**Backend** — 47 tests covering all routers + pure scoring logic. Requires a running PostgreSQL instance (use `docker compose up -d postgres`).
+
 ```bash
 cd backend
-uv run pytest
-uv run pytest --cov=app --cov-report=term-missing
+TEST_DATABASE_URL=postgresql+asyncpg://workout:workout@localhost:5432/workout_maths_test uv run pytest
+uv run pytest --cov=app --cov-report=term-missing   # coverage ≥ 84%
 ```
+
+| Area | Tests | What's covered |
+|------|-------|----------------|
+| Scoring (unit) | 9 | Points per table tier, streak bonus thresholds, streak reset behaviour, mixed-difficulty quizzes |
+| Auth | 7 | Signup (approved/unapproved/duplicate), login, wrong password, `/auth/me` auth'd and unauth'd |
+| Admin | 8 | Admin login, username CRUD (add/duplicate/delete/list), user token rejected on admin routes |
+| Users | 6 | Table selection (valid/out-of-range/replaces), stats (empty, with tables, after quiz) |
+| Quiz | 12 | All-correct (easy/hard), wrong answer count, mixed scoring, streak bonuses (3/5/10), streak resets, point accumulation, session isolation between users |
+| Leaderboard | 4 | Empty, zero-points excluded, ordering, rank field |
+| Health | 1 | `GET /` returns 200 |
+
+**Frontend** — 19 tests covering pure logic in `lib/`. No backend required.
+
+```bash
+cd frontend
+npm test
+```
+
+| Area | Tests | What's covered |
+|------|-------|----------------|
+| Quiz logic | 12 | `generateQuestions` returns 10 questions, correct answer = table × multiplier, 5 unique positive options, empty input; `getStreakBadge` for each threshold (null/3/5/10/above-max) |
+| Auth utils | 7 | `setToken`/`getToken`/`clearToken` localStorage round-trip, `isLoggedIn` true/false/after-clear |
 
 ---
 
