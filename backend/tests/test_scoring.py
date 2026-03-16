@@ -61,3 +61,24 @@ def test_partial_streak_only_three_bonus():
     assert streak_bonus == 5  # only 3-streak, not 5-streak
     assert total == 9
     assert max_streak == 4
+
+
+def test_alternating_correct_wrong_no_streak():
+    # Alternating correct/wrong → max_streak=1, no bonuses
+    answers = []
+    for i in range(5):
+        answers += _answers(2, 1, True) + _answers(2, 1, False)
+    base, streak_bonus, total, max_streak = compute_scoring(answers)
+    assert base == 5
+    assert streak_bonus == 0
+    assert max_streak == 1
+
+
+def test_mixed_table_difficulties():
+    # 5 easy (2×) + 5 hard (7×) all correct — base points use per-table rates
+    answers = _answers(2, 5, True) + _answers(7, 5, True)
+    base, streak_bonus, total, max_streak = compute_scoring(answers)
+    assert base == 5 * 1 + 5 * 3  # 5 easy (1pt each) + 5 hard (3pts each)
+    assert base == 20
+    assert streak_bonus == 40  # 10 consecutive → all three bonuses (5+10+25)
+    assert max_streak == 10

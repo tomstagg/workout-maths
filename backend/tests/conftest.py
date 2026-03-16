@@ -81,8 +81,37 @@ async def alice(db_session: AsyncSession, allowed_alice):
 
 
 @pytest.fixture
+async def allowed_bob(db_session: AsyncSession):
+    from app.models.user import AllowedUsername
+
+    entry = AllowedUsername(username="bob")
+    db_session.add(entry)
+    await db_session.flush()
+    return entry
+
+
+@pytest.fixture
+async def bob(db_session: AsyncSession, allowed_bob):
+    from app.models.user import User
+
+    u = User(
+        username="bob",
+        password_hash=hash_password("password123"),
+        display_name="Bob",
+    )
+    db_session.add(u)
+    await db_session.flush()
+    return u
+
+
+@pytest.fixture
 def user_token(alice):
     return create_access_token({"sub": str(alice.id)})
+
+
+@pytest.fixture
+def bob_token(bob):
+    return create_access_token({"sub": str(bob.id)})
 
 
 @pytest.fixture

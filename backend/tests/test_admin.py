@@ -72,3 +72,12 @@ async def test_delete_username_not_found(client: AsyncClient, admin_token: str):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 404
+
+
+async def test_admin_endpoints_reject_user_token(
+    client: AsyncClient, alice, user_token: str
+):
+    response = await client.get(
+        "/admin/usernames", headers={"Authorization": f"Bearer {user_token}"}
+    )
+    assert response.status_code == 403
