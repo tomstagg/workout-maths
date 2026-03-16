@@ -269,11 +269,13 @@ cd backend && uv run pytest
 
 Each task is self-contained enough for an independent agent to pick up in a git worktree, implement, test locally, and open a PR. Tasks are ordered: foundations first, enhancements last.
 
+> **UI polish**: UI improvement tasks use [Impeccable](https://impeccable.so) and are interspersed throughout the backlog as the app takes shape. These are marked with the `ui/` branch prefix.
+
 ---
 
 ### TASK-001 · Initial commit & branch hygiene
 **Branch**: `chore/initial-commit`
-**Status**: Not started
+**Status**: Done
 
 **Description**
 Everything is currently untracked on the `framework` branch. This task commits all existing code, sets up `.gitignore`, and ensures `main` reflects the working baseline.
@@ -370,6 +372,28 @@ Also add `backend/tests/test_scoring.py` testing `compute_scoring` from `app/rou
 - `uv run pytest tests/ -v` passes with a test PostgreSQL DB
 - Coverage ≥ 80% on `app/routers/` and `app/auth.py` (`uv run pytest --cov=app --cov-report=term-missing`)
 - No test mutates another test's state (each test is isolated)
+
+---
+
+### TASK-UI-01 · Initial UI polish pass
+**Branch**: `ui/initial-polish`
+**Status**: In progress
+**Depends on**: TASK-002
+
+**Description**
+First impeccable pass over the existing frontend. The app is functionally complete but unstyled beyond defaults. This task brings it up to a production-quality baseline before unit tests are written against the components.
+
+**Scope**
+Run the relevant impeccable skills against the current frontend pages and components:
+- `/impeccable:critique` — assess current design quality and identify priority areas
+- `/impeccable:frontend-design` — redesign or polish key pages (login, signup, profile, quiz, results, admin)
+- `/impeccable:polish` — alignment, spacing, and consistency pass
+- `/impeccable:colorize` — add strategic colour (streak badges, score states, difficulty tiers)
+
+**PR criteria**
+- All existing pages render without layout breakage
+- `npm run build` and `npm run lint` pass
+- Mobile-friendly (no horizontal scroll on 375px viewport)
 
 ---
 
