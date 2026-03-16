@@ -129,7 +129,7 @@ export default function AdminPage() {
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 placeholder="Enter username (e.g. alice)"
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
                 required
               />
               <button

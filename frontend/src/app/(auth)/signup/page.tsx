@@ -81,7 +81,7 @@ export default function SignupPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="font-body w-full border-2 border-blue-300 rounded-2xl px-4 py-3 text-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50 transition-all"
+                className="font-body w-full border-2 border-blue-300 rounded-2xl px-4 py-3 text-lg text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50 transition-all"
                 placeholder="your username"
                 required
                 autoComplete="username"
@@ -96,7 +96,7 @@ export default function SignupPage() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="font-body w-full border-2 border-green-300 rounded-2xl px-4 py-3 text-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 bg-green-50 transition-all"
+                className="font-body w-full border-2 border-green-300 rounded-2xl px-4 py-3 text-lg text-gray-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 bg-green-50 transition-all"
                 placeholder="e.g. Alex"
                 autoComplete="name"
               />
@@ -109,7 +109,7 @@ export default function SignupPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="font-body w-full border-2 border-pink-300 rounded-2xl px-4 py-3 text-lg focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 bg-pink-50 transition-all"
+                className="font-body w-full border-2 border-pink-300 rounded-2xl px-4 py-3 text-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 bg-pink-50 transition-all"
                 placeholder="choose a password"
                 required
                 autoComplete="new-password"
