@@ -1,5 +1,7 @@
 # workout-maths
 
+![CI](https://github.com/tomstagg/workout-maths/actions/workflows/ci.yml/badge.svg)
+
 A times-tables practice web app for children aged 6–10. Kids are pre-registered by an admin, sign up with a password, pick which tables to practise, take timed 10-question multiple-choice quizzes, and earn points with streak bonuses. The goal is an encouraging, rewarding experience that makes children want to keep practising.
 
 **Stack**: FastAPI (Python 3.12) + PostgreSQL · Next.js 15 (TypeScript, App Router, Tailwind) · Deployed on Railway.
