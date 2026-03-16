@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, type QuizSessionResponse, type UserProfile } from "@/lib/api";
 import { generateQuestions, getStreakBadge, type Question } from "@/lib/quiz";
+import { playCorrect, playWrong } from "@/lib/sounds";
 
 interface AnswerRecord {
   table_number: number;
@@ -22,6 +23,19 @@ function formatTime(seconds: number): string {
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 }
+
+const dotColors = [
+  "bg-red-400",
+  "bg-orange-400",
+  "bg-amber-400",
+  "bg-yellow-400",
+  "bg-emerald-400",
+  "bg-teal-400",
+  "bg-sky-400",
+  "bg-blue-400",
+  "bg-violet-400",
+  "bg-pink-400",
+];
 
 export default function QuizPage() {
   const router = useRouter();
@@ -76,6 +90,8 @@ export default function QuizPage() {
       setSelectedOption(selected);
       setOptionResult(isRight ? "correct" : "wrong");
 
+      if (isRight) playCorrect(); else playWrong();
+
       const newStreak = isRight ? currentStreak + 1 : 0;
       setCurrentStreak(newStreak);
 
@@ -125,7 +141,7 @@ export default function QuizPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="text-6xl float-1 mb-4">🧮</div>
+          <div aria-hidden="true" className="text-6xl float-1 mb-4">🧮</div>
           <p className="font-display text-2xl text-purple-600">Getting your quiz ready...</p>
         </div>
       </div>
@@ -145,7 +161,7 @@ export default function QuizPage() {
           </p>
           <Link
             href="/profile"
-            className="font-display inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-xl px-8 py-4 rounded-2xl transition-all transform hover:scale-105"
+            className="font-display inline-block bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-xl px-8 py-4 rounded-full transition-all transform hover:scale-105"
           >
             Go to Profile 👤
           </Link>
@@ -158,7 +174,7 @@ export default function QuizPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="text-7xl float-1 mb-4">🚀</div>
+          <div aria-hidden="true" className="text-7xl float-1 mb-4">🚀</div>
           <p className="font-display text-3xl text-purple-600">Calculating your score...</p>
         </div>
       </div>
@@ -172,8 +188,8 @@ export default function QuizPage() {
     <div className="max-w-2xl mx-auto">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
-        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-blue-200">
-          <p className="font-body text-xs text-blue-400 uppercase font-semibold tracking-wide">Time</p>
+        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-sky-200">
+          <p className="font-body text-xs text-blue-600 uppercase font-semibold tracking-wide">Time</p>
           <p className="font-display text-3xl font-bold text-blue-600">
             ⏱ {formatTime(elapsedSeconds)}
           </p>
@@ -190,13 +206,13 @@ export default function QuizPage() {
             {Array.from({ length: 10 }).map((_, i) => (
               <div
                 key={i}
-                className={`h-2 w-2 rounded-full transition-all ${
+                className={`h-3 w-3 rounded-full transition-all ${
                   i < answers.length
                     ? answers[i].is_correct
-                      ? "bg-green-400"
-                      : "bg-red-400"
+                      ? `${dotColors[i]}`
+                      : "bg-rose-400"
                     : i === currentIndex
-                    ? "bg-amber-400 scale-125"
+                    ? `${dotColors[i]} scale-150 ring-2 ring-offset-1`
                     : "bg-gray-200"
                 }`}
               />
@@ -204,8 +220,8 @@ export default function QuizPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-purple-200 text-right">
-          <p className="font-body text-xs text-purple-400 uppercase font-semibold tracking-wide">Streak</p>
+        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-violet-200 text-right">
+          <p className="font-body text-xs text-purple-600 uppercase font-semibold tracking-wide">Streak</p>
           <p className="font-display text-3xl font-bold text-purple-600">
             {currentStreak === 0 ? "–" : `${currentStreak} 🔥`}
           </p>
@@ -237,15 +253,17 @@ export default function QuizPage() {
           const isCorrectOption = option === currentQuestion.correctAnswer;
 
           let btnClass =
-            "font-display text-4xl font-bold py-6 rounded-3xl border-4 transition-all transform active:scale-95 shadow-md ";
+            "font-display text-5xl font-bold py-7 min-h-[5rem] rounded-3xl border-4 transition-all transform active:scale-90 shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400 focus-visible:ring-offset-2 ";
 
           if (selectedOption === null) {
             btnClass +=
-              "bg-white border-gray-200 text-gray-800 hover:border-amber-400 hover:bg-amber-50 hover:scale-105 cursor-pointer";
+              "bg-white border-gray-200 text-gray-800 hover:border-sky-400 hover:bg-sky-50 hover:scale-105 hover:shadow-lg cursor-pointer";
           } else if (isCorrectOption) {
-            btnClass += "bg-green-400 border-green-500 text-white scale-105 shadow-lg";
+            btnClass += `bg-green-400 border-green-500 text-white scale-105 shadow-lg btn-correct ${
+              optionResult === "correct" && isSelected ? "btn-correct-pulse" : ""
+            }`;
           } else if (isSelected && !isCorrectOption) {
-            btnClass += "bg-red-400 border-red-500 text-white";
+            btnClass += "bg-red-400 border-red-500 text-white btn-wrong";
           } else {
             btnClass += "bg-gray-100 border-gray-200 text-gray-400";
           }
@@ -275,8 +293,8 @@ export default function QuizPage() {
                 key={i}
                 className={`flex items-center justify-between px-4 py-2 rounded-xl text-sm font-body ${
                   a.is_correct
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
+                    ? "bg-emerald-50 border border-emerald-200"
+                    : "bg-rose-50 border border-rose-200"
                 }`}
               >
                 <span className="font-semibold text-gray-700">

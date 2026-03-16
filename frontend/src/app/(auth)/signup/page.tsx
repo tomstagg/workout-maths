@@ -34,28 +34,26 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Floating decorations */}
-      <span className="absolute top-8 right-8 text-5xl float-1 select-none pointer-events-none">🌈</span>
-      <span className="absolute top-16 left-12 text-4xl float-2 select-none pointer-events-none">⭐</span>
-      <span className="absolute bottom-16 right-16 text-4xl float-3 select-none pointer-events-none">✨</span>
-      <span className="absolute bottom-8 left-8 text-5xl float-4 select-none pointer-events-none">🌟</span>
-      <span className="absolute top-1/3 right-4 text-3xl float-2 select-none pointer-events-none opacity-40">➕</span>
-      <span className="absolute top-1/2 left-4 text-3xl float-3 select-none pointer-events-none opacity-40">✖️</span>
+      <span aria-hidden="true" className="absolute top-8 right-8 text-5xl float-1 select-none pointer-events-none">🌈</span>
+      <span aria-hidden="true" className="absolute top-16 left-12 text-4xl float-2 select-none pointer-events-none">⭐</span>
+      <span aria-hidden="true" className="absolute bottom-16 right-16 text-4xl float-3 select-none pointer-events-none">✨</span>
+      <span aria-hidden="true" className="absolute bottom-8 left-8 text-5xl float-4 select-none pointer-events-none">🌟</span>
 
       <div className="w-full max-w-md relative z-10 pop-in">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-7xl mb-3 float-1">🚀</div>
-          <h1 className="font-display text-5xl font-bold text-amber-500 drop-shadow-sm tracking-wide">
+          <div aria-hidden="true" className="text-7xl mb-3 float-1">🚀</div>
+          <h1 className="font-display text-5xl font-bold drop-shadow-sm tracking-wide rainbow-text">
             Workout Maths
           </h1>
           <p className="font-body text-purple-600 text-xl font-bold mt-2">
-            Create your account! 🌟
+            Create your account! <span aria-hidden="true">🌟</span>
           </p>
         </div>
 
         {/* Teacher note */}
-        <div className="bg-blue-100 border-2 border-blue-300 rounded-2xl px-5 py-3 mb-5 text-center">
-          <p className="font-body text-blue-700 font-bold text-sm">
+        <div className="bg-sky-100 border-2 border-sky-300 rounded-2xl px-5 py-3 mb-5 text-center">
+          <p className="font-body text-sky-700 font-bold text-sm">
             📋 Your teacher must add your name before you can sign up!
           </p>
         </div>
@@ -67,17 +65,18 @@ export default function SignupPage() {
           </h2>
 
           {error && (
-            <div className="bg-red-100 border-2 border-red-400 text-red-700 rounded-2xl p-3 mb-5 text-center font-bold font-body">
-              😬 {error}
+            <div role="alert" className="bg-red-100 border-2 border-red-400 text-red-700 rounded-2xl p-3 mb-5 text-center font-bold font-body">
+              <span aria-hidden="true">😬</span> {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block font-display text-lg font-semibold text-gray-700 mb-2">
+              <label htmlFor="signup-username" className="block font-display text-lg font-semibold text-gray-700 mb-2">
                 Username
               </label>
               <input
+                id="signup-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -88,11 +87,12 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block font-display text-lg font-semibold text-gray-700 mb-2">
+              <label htmlFor="signup-display-name" className="block font-display text-lg font-semibold text-gray-700 mb-2">
                 Your Name{" "}
                 <span className="text-gray-400 text-sm font-normal">(optional)</span>
               </label>
               <input
+                id="signup-display-name"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -102,10 +102,11 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block font-display text-lg font-semibold text-gray-700 mb-2">
+              <label htmlFor="signup-password" className="block font-display text-lg font-semibold text-gray-700 mb-2">
                 Password
               </label>
               <input
+                id="signup-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -118,7 +119,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="font-display w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-2xl py-4 rounded-2xl transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="font-display w-full bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-2xl py-4 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {loading ? "Creating account... ⏳" : "Start Learning! 🌟"}
             </button>
@@ -128,18 +129,18 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-amber-600 font-bold hover:text-amber-800 underline decoration-2 transition-colors"
+              className="text-sky-600 font-bold hover:text-sky-800 underline decoration-2 transition-colors"
             >
               Sign in! 🔑
             </Link>
           </p>
         </div>
 
-        <div className="flex justify-center gap-6 mt-8 text-3xl opacity-30 select-none">
-          <span>➕</span>
-          <span>✖️</span>
-          <span>➖</span>
-          <span>➗</span>
+        <div aria-hidden="true" className="flex justify-center gap-6 mt-8 text-3xl opacity-50 select-none">
+          <span className="text-red-400">➕</span>
+          <span className="text-amber-400">✖️</span>
+          <span className="text-green-400">➖</span>
+          <span className="text-blue-400">➗</span>
         </div>
       </div>
     </div>

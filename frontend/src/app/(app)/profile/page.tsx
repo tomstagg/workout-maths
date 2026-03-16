@@ -65,7 +65,7 @@ export default function ProfilePage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="text-6xl float-1 mb-4">⭐</div>
+          <div aria-hidden="true" className="text-6xl float-1 mb-4">⭐</div>
           <p className="font-display text-2xl text-purple-600">Loading your stuff...</p>
         </div>
       </div>
@@ -80,12 +80,12 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-3xl p-8 text-white shadow-xl">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <p className="font-body text-purple-200 text-lg mb-1">Welcome back,</p>
+            <p className="font-body text-white/80 text-lg mb-1">Welcome back,</p>
             <h1 className="font-display text-5xl font-bold">{profile.display_name}! 👋</h1>
-            <p className="font-body text-purple-200 mt-2">{quizCount} quizzes completed</p>
+            <p className="font-body text-white/80 mt-2">{quizCount} quizzes completed</p>
           </div>
           <div className="bg-white/20 backdrop-blur rounded-3xl px-8 py-6 text-center border-2 border-white/30">
             <p className="font-body text-purple-200 text-sm uppercase tracking-wide font-semibold">
@@ -100,7 +100,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Table selector */}
-      <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-amber-200">
+      <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-sky-200">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-3xl font-bold text-gray-800">
             Pick Your Tables 🎯
@@ -121,6 +121,8 @@ export default function ProfilePage() {
               <button
                 key={t}
                 onClick={() => toggleTable(t)}
+                aria-label={`Table ${t}`}
+                aria-pressed={selected}
                 className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all transform hover:scale-110 active:scale-95 font-display font-bold text-xl shadow-sm ${
                   selected
                     ? `${tier.bg} ${tier.color} border-current scale-105 shadow-md`
@@ -129,7 +131,7 @@ export default function ProfilePage() {
               >
                 <span className="text-2xl">{t}</span>
                 {selected && (
-                  <span className="absolute -top-2 -right-2 text-lg">✓</span>
+                  <span aria-hidden="true" className="absolute -top-2 -right-2 text-lg">✓</span>
                 )}
               </button>
             );
@@ -147,6 +149,8 @@ export default function ProfilePage() {
             🔴 Hard: 3pts (×7, ×11, ×12)
           </span>
         </div>
+
+        <div className="h-1 rainbow-bar rounded-full mt-4" />
       </div>
 
       {/* Start quiz button */}
@@ -154,7 +158,7 @@ export default function ProfilePage() {
         {selectedTables.length > 0 ? (
           <Link
             href="/quiz"
-            className="font-display inline-block bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-3xl px-12 py-5 rounded-3xl transition-all transform hover:scale-105 active:scale-95 shadow-xl"
+            className="font-display inline-block bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-3xl px-12 py-5 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl"
           >
             Start Quiz! 🚀
           </Link>
@@ -167,7 +171,7 @@ export default function ProfilePage() {
 
       {/* Leaderboard */}
       {leaderboard.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-purple-200">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-violet-200">
           <h2 className="font-display text-3xl font-bold text-gray-800 mb-6">
             🏆 Leaderboard
           </h2>
@@ -179,7 +183,7 @@ export default function ProfilePage() {
                   key={entry.username}
                   className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
                     isMe
-                      ? "bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-400 shadow-md"
+                      ? "bg-gradient-to-r from-sky-100 to-violet-100 border-2 border-violet-300 shadow-md"
                       : "bg-gray-50 border-2 border-transparent hover:border-gray-200"
                   }`}
                 >
@@ -205,12 +209,12 @@ export default function ProfilePage() {
                   <div className="flex-1 min-w-0">
                     <p
                       className={`font-display text-lg font-semibold truncate ${
-                        isMe ? "text-amber-700" : "text-gray-800"
+                        isMe ? "text-violet-700" : "text-gray-800"
                       }`}
                     >
                       {entry.display_name}
                       {isMe && (
-                        <span className="font-body text-sm text-amber-600 ml-2">(you!)</span>
+                        <span className="font-body text-sm text-violet-600 ml-2">(you!)</span>
                       )}
                     </p>
                     <p className="font-body text-sm text-gray-500">
@@ -219,7 +223,7 @@ export default function ProfilePage() {
                   </div>
                   <span
                     className={`font-display text-2xl font-bold ${
-                      isMe ? "text-amber-600" : "text-purple-600"
+                      isMe ? "text-violet-600" : "text-purple-600"
                     }`}
                   >
                     {entry.total_points.toLocaleString()} ⭐
