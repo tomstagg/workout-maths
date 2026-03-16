@@ -301,7 +301,7 @@ git log --oneline   # should show a meaningful first commit message
 
 ### TASK-002 · Backend integration test suite
 **Branch**: `test/backend-integration`
-**Status**: Not started
+**Status**: Done
 **Depends on**: TASK-001
 
 **Description**
@@ -399,7 +399,7 @@ Run the relevant impeccable skills against the current frontend pages and compon
 
 ### TASK-003 · Frontend unit tests
 **Branch**: `test/frontend-unit`
-**Status**: Not started
+**Status**: Done
 **Depends on**: TASK-001
 
 **Description**
@@ -464,7 +464,7 @@ npm test
 
 ### TASK-004 · GitHub Actions CI pipeline
 **Branch**: `ci/github-actions`
-**Status**: Not started
+**Status**: Done
 **Depends on**: TASK-002, TASK-003
 
 **Description**
