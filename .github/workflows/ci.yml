@@ -27,7 +27,7 @@ jobs:
       TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/workout_maths_test
       SECRET_KEY: ci-secret-key-for-testing-only-not-real
       ADMIN_USERNAME: admin
-      ADMIN_PASSWORD: testpassword
+      ADMIN_PASSWORD: changeme
       APP_ENV: test
     defaults:
       run:
