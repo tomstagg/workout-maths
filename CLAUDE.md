@@ -179,3 +179,25 @@ Backend: http://localhost:8000 · Frontend: http://localhost:3000
 
 On first run, `init-test-db.sql` creates the `workout_maths_test` database automatically.
 Migrations run automatically when the backend container starts.
+
+## Design Context
+
+### Users
+Primary users are children aged 6–10 using the app in a school classroom on shared devices, supervised by a teacher. Teachers are secondary users who manage student enrollment via an admin portal. Sessions are short and focused — a 10-question quiz completed in a few minutes. The interface must be immediately legible to early readers with limited keyboard/mouse precision.
+
+### Brand Personality
+**Friendly, Encouraging, Clear, Rewarding** — warm and calm with a slightly understated energy. The experience should feel like a game but never overwhelming. Vibrant wild animal characters/avatars are the aspirational mascot direction (think Duolingo's owl — a funny, characterful creature that reacts to the child's performance). Celebration moments should be joyful but not chaotic.
+
+### Aesthetic Direction
+- **Reference:** Duolingo — gamified streaks, big satisfying feedback moments, a mascot with personality, calm progression between excitement peaks.
+- **Anti-reference:** Avoid frantic, overstimulating designs; avoid generic "educational software" beige/blue corporate look; avoid dark mode.
+- **Theme:** Light only. Soft pastel gradient backgrounds (sky/emerald/violet). Rainbow accents used sparingly for celebration and branding — not as the default for every element.
+- **Typography:** Fredoka (display/headings) + Nunito (body) — both friendly and legible for young readers.
+- **Avatars:** Funny, expressive wild animal characters are the aspirational visual hook (not yet implemented — a future direction to design toward).
+
+### Design Principles
+1. **Calm is the baseline.** Keep the resting state clean and uncluttered. Reserve animation and colour intensity for feedback moments (correct answer, streak, perfect score).
+2. **Encourage, never shame.** Wrong answers get gentle feedback; correct answers and streaks get celebration. No red-dominant error states that feel punishing.
+3. **Legible at a glance.** Large touch targets, high-contrast text, clear visual hierarchy. A 6-year-old should never be confused about what to tap next.
+4. **Earn the delight.** Confetti, fanfare, and sparkles should feel earned — triggered by genuine achievement (perfect score, long streak), not routine interactions.
+5. **Consistent rainbow identity.** The 7-colour rainbow gradient (`--rainbow`) is the brand signature. Use it for the nav border, divider bars, and "Workout Maths" title. Don't dilute it by applying it everywhere.

@@ -3,8 +3,10 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import confetti from "canvas-confetti";
 import { api, type QuizSessionResponse } from "@/lib/api";
 import { getStreakBadge } from "@/lib/quiz";
+import { playFanfarePerfect, playFanfareShort } from "@/lib/sounds";
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -19,7 +21,7 @@ function getScoreMessage(correct: number): { message: string; emoji: string; col
     return {
       message: "PERFECT! You're a times tables superstar!",
       emoji: "⭐",
-      color: "from-amber-400 to-yellow-400",
+      color: "from-amber-400 via-orange-400 to-yellow-300",
     };
   if (correct >= 8)
     return {
@@ -60,11 +62,55 @@ function ResultsContent() {
     else setLoading(false);
   }, [sessionId]);
 
+  useEffect(() => {
+    if (!session) return;
+    if (session.correct_count === 10) {
+      playFanfarePerfect();
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#f87171", "#fb923c", "#fbbf24", "#34d399", "#38bdf8", "#818cf8", "#c084fc"],
+      });
+      setTimeout(
+        () =>
+          confetti({
+            particleCount: 80,
+            spread: 100,
+            origin: { x: 0.2, y: 0.5 },
+            angle: 60,
+          }),
+        400
+      );
+      setTimeout(
+        () =>
+          confetti({
+            particleCount: 80,
+            spread: 100,
+            origin: { x: 0.8, y: 0.5 },
+            angle: 120,
+          }),
+        800
+      );
+      setTimeout(
+        () =>
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+          }),
+        1200
+      );
+    } else {
+      playFanfareShort();
+    }
+  }, [session]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="text-6xl float-1 mb-4">🌟</div>
+          <div aria-hidden="true" className="text-6xl float-1 mb-4">🌟</div>
           <p className="font-display text-2xl text-purple-600">Loading your results...</p>
         </div>
       </div>
@@ -85,17 +131,29 @@ function ResultsContent() {
   const { message, emoji, color } = getScoreMessage(session.correct_count);
   const streakBadge = getStreakBadge(session.max_streak);
   const durationSeconds = Math.round(session.duration_seconds);
+  const isPerfect = session.correct_count === 10;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Score hero */}
-      <div className={`bg-gradient-to-br ${color} rounded-3xl p-8 text-white text-center shadow-2xl`}>
+      <div className={`bg-gradient-to-br ${color} rounded-3xl p-8 text-white text-center shadow-2xl relative overflow-hidden`}>
+        {isPerfect && (
+          <>
+            <span aria-hidden="true" className="absolute top-4 left-6 text-3xl sparkle-spin select-none pointer-events-none">✨</span>
+            <span aria-hidden="true" className="absolute top-4 right-6 text-3xl sparkle-spin-slow select-none pointer-events-none">⭐</span>
+            <span aria-hidden="true" className="absolute bottom-6 left-8 text-2xl sparkle-spin-slow select-none pointer-events-none">✨</span>
+            <span aria-hidden="true" className="absolute bottom-4 right-10 text-3xl sparkle-spin select-none pointer-events-none">⭐</span>
+          </>
+        )}
         <p className="font-body text-white/80 text-lg mb-2 uppercase tracking-wide font-semibold">
           Your Score
         </p>
-        <p className="font-display font-bold leading-none" style={{ fontSize: "clamp(5rem, 20vw, 9rem)" }}>
+        <p
+          className={`font-display font-bold leading-none ${isPerfect ? "rainbow-text" : ""}`}
+          style={{ fontSize: "clamp(5rem, 20vw, 9rem)" }}
+        >
           {session.correct_count}
-          <span className="text-white/60 text-[0.4em]">/10</span>
+          <span className={`${isPerfect ? "" : "text-white/60"} text-[0.4em]`}>/10</span>
         </p>
         <p className="font-display text-3xl font-bold mt-4">
           {message} {emoji}
@@ -180,19 +238,22 @@ function ResultsContent() {
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-4 justify-center pb-4">
-        <Link
-          href="/quiz"
-          className="font-display bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xl px-8 py-4 rounded-2xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
-        >
-          🔄 Play Again
-        </Link>
-        <Link
-          href="/profile"
-          className="font-display bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-xl px-8 py-4 rounded-2xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
-        >
-          👤 See Profile
-        </Link>
+      <div className="flex flex-col items-center gap-4 pb-4">
+        <div className="h-1 rainbow-bar mx-auto w-32 rounded-full" />
+        <div className="flex gap-4 justify-center">
+          <Link
+            href="/quiz"
+            className="font-display bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-xl px-8 py-4 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+          >
+            🔄 Play Again
+          </Link>
+          <Link
+            href="/profile"
+            className="font-display bg-violet-500 hover:bg-violet-600 text-white font-bold text-xl px-8 py-4 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+          >
+            👤 See Profile
+          </Link>
+        </div>
       </div>
     </div>
   );
