@@ -42,7 +42,7 @@ function generateDistractors(table: number, multiplier: number, correct: number)
   }
 
   const arr = shuffle([...distractors].filter((v) => v !== correct));
-  return arr.slice(0, 4);
+  return arr.slice(0, 5);
 }
 
 export function generateQuestions(selectedTables: number[]): Question[] {
@@ -57,13 +57,13 @@ export function generateQuestions(selectedTables: number[]): Question[] {
     const correctAnswer = table * multiplier;
     const distractors = generateDistractors(table, multiplier, correctAnswer);
 
-    // Ensure exactly 4 distractors (pad with random if needed)
-    while (distractors.length < 4) {
+    // Ensure exactly 5 distractors (pad with random if needed)
+    while (distractors.length < 5) {
       const val = correctAnswer + (distractors.length + 1) * 5;
       if (!distractors.includes(val)) distractors.push(val);
     }
 
-    const options = shuffle([correctAnswer, ...distractors.slice(0, 4)]);
+    const options = shuffle([correctAnswer, ...distractors.slice(0, 5)]);
 
     questions.push({ table, multiplier, correctAnswer, options });
   }

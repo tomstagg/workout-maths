@@ -247,7 +247,7 @@ export default function QuizPage() {
       </div>
 
       {/* Answer buttons */}
-      <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-4 mb-6">
         {currentQuestion.options.map((option, i) => {
           const isSelected = selectedOption === option;
           const isCorrectOption = option === currentQuestion.correctAnswer;
