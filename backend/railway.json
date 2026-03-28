@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "pip install uv && uv sync --frozen"
+    "buildCommand": "pip install uv && python -m uv sync --frozen"
   },
   "deploy": {
     "preDeployCommand": ".venv/bin/alembic upgrade head",
