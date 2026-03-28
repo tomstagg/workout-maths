@@ -22,10 +22,10 @@ describe("generateQuestions", () => {
     }
   });
 
-  it("each question has exactly 5 options", () => {
+  it("each question has exactly 6 options", () => {
     const questions = generateQuestions([6]);
     for (const q of questions) {
-      expect(q.options).toHaveLength(5);
+      expect(q.options).toHaveLength(6);
     }
   });
 
