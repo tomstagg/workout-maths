@@ -71,6 +71,14 @@ export function generateQuestions(selectedTables: number[]): Question[] {
   return questions;
 }
 
+export function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 export const STREAK_THRESHOLDS = [
   { streak: 3, bonus: 5, label: "Soft Streak", emoji: "🔥" },
   { streak: 5, bonus: 10, label: "Medium Streak", emoji: "🔥🔥" },
