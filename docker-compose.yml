@@ -19,7 +19,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     environment:
       DATABASE_URL: postgresql+asyncpg://workout:workout@postgres:5432/workout_maths
       TEST_DATABASE_URL: postgresql+asyncpg://workout:workout@postgres:5432/workout_maths_test
