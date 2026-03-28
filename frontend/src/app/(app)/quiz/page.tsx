@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, type QuizSessionResponse, type UserProfile } from "@/lib/api";
-import { generateQuestions, getStreakBadge, type Question } from "@/lib/quiz";
+import { formatTime, generateQuestions, getStreakBadge, type Question } from "@/lib/quiz";
 import { playCorrect, playWrong } from "@/lib/sounds";
 
 interface AnswerRecord {
@@ -16,13 +16,6 @@ interface AnswerRecord {
   correct_answer: number;
 }
 
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-}
 
 const dotColors = [
   "bg-red-400",
@@ -50,6 +43,7 @@ export default function QuizPage() {
   const [hasNoTables, setHasNoTables] = useState(false);
   const [loading, setLoading] = useState(true);
   const startedAtRef = useRef<string>("");
+  const startTimeRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -64,9 +58,10 @@ export default function QuizPage() {
         const qs = generateQuestions(profile.selected_tables);
         setQuestions(qs);
         startedAtRef.current = new Date().toISOString();
+        startTimeRef.current = Date.now();
         timerRef.current = setInterval(() => {
-          setElapsedSeconds((s) => s + 1);
-        }, 1000);
+          setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        }, 500);
       } catch {
         router.push("/login");
       } finally {
@@ -114,7 +109,7 @@ export default function QuizPage() {
           try {
             const result = await api.post<QuizSessionResponse>("/quiz/sessions", {
               started_at: startedAtRef.current,
-              duration_seconds: elapsedSeconds,
+              duration_seconds: Math.floor((Date.now() - startTimeRef.current) / 1000),
               answers: newAnswers.map((a) => ({
                 table_number: a.table_number,
                 multiplier: a.multiplier,
@@ -134,7 +129,7 @@ export default function QuizPage() {
         }
       }, 600);
     },
-    [selectedOption, isSubmitting, questions, currentIndex, currentStreak, answers, elapsedSeconds, router]
+    [selectedOption, isSubmitting, questions, currentIndex, currentStreak, answers, router]
   );
 
   if (loading) {

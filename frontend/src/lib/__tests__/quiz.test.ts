@@ -1,9 +1,35 @@
 import { describe, it, expect } from "vitest";
 import {
+  formatTime,
   generateQuestions,
   getStreakBadge,
   STREAK_THRESHOLDS,
 } from "../quiz";
+
+describe("formatTime", () => {
+  it("formats zero as 00:00", () => {
+    expect(formatTime(0)).toBe("00:00");
+  });
+
+  it("formats sub-minute seconds", () => {
+    expect(formatTime(9)).toBe("00:09");
+    expect(formatTime(59)).toBe("00:59");
+  });
+
+  it("formats exactly one minute", () => {
+    expect(formatTime(60)).toBe("01:00");
+  });
+
+  it("formats minutes and seconds", () => {
+    expect(formatTime(90)).toBe("01:30");
+    expect(formatTime(125)).toBe("02:05");
+  });
+
+  it("pads single-digit minutes", () => {
+    expect(formatTime(600)).toBe("10:00");
+    expect(formatTime(3599)).toBe("59:59");
+  });
+});
 
 describe("generateQuestions", () => {
   it("returns exactly 10 questions for a valid table list", () => {
