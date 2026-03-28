@@ -5,8 +5,8 @@
     "buildCommand": "pip install ."
   },
   "deploy": {
-    "preDeployCommand": "alembic upgrade head",
-    "startCommand": "echo '=== PATH ===' && echo $PATH && echo '=== Python ===' && python --version && echo '=== checking uvicorn ===' && which uvicorn || echo 'uvicorn not on PATH' && ls /mise/installs/python/3.12.13/bin/ | grep -E 'uvicorn|alembic' && uvicorn app.main:app --host 0.0.0.0 --port $PORT",
+    "preDeployCommand": "PATH=/mise/shims:/mise/installs/python/3.12.13/bin:$PATH alembic upgrade head",
+    "startCommand": "PATH=/mise/shims:/mise/installs/python/3.12.13/bin:$PATH uvicorn app.main:app --host 0.0.0.0 --port $PORT",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
