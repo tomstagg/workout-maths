@@ -183,7 +183,7 @@ export default function QuizPage() {
     <div className="max-w-2xl mx-auto">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
-        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-sky-200">
+        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-sky-200 w-32">
           <p className="font-body text-xs text-blue-600 uppercase font-semibold tracking-wide">Time</p>
           <p className="font-display text-3xl font-bold text-blue-600">
             ⏱ {formatTime(elapsedSeconds)}
