@@ -44,6 +44,7 @@ export interface UserProfile {
   id: string;
   username: string;
   display_name: string;
+  animal_type: string | null;
   total_points: number;
   created_at: string;
   selected_tables: number[];

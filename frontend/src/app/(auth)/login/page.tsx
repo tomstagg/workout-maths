@@ -29,40 +29,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Floating decorations */}
-      <span aria-hidden="true" className="absolute top-8 left-8 text-5xl float-1 select-none pointer-events-none">⭐</span>
-      <span aria-hidden="true" className="absolute top-16 right-12 text-4xl float-2 select-none pointer-events-none">🌟</span>
-      <span aria-hidden="true" className="absolute bottom-16 left-16 text-4xl float-3 select-none pointer-events-none">✨</span>
-      <span aria-hidden="true" className="absolute bottom-8 right-8 text-5xl float-4 select-none pointer-events-none">⭐</span>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      {/* Title */}
+      <div className="text-center mb-10">
+        <h1 className="font-display text-5xl font-bold tracking-wide rainbow-text drop-shadow-sm">
+          Workout Maths
+        </h1>
+        <p className="font-body text-slate-500 text-lg mt-2">Times tables practice</p>
+      </div>
 
-      <div className="w-full max-w-md relative z-10 pop-in">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div aria-hidden="true" className="text-7xl mb-3 float-1">🌟</div>
-          <h1 className="font-display text-5xl font-bold drop-shadow-sm tracking-wide rainbow-text">
-            Workout Maths
-          </h1>
-          <p className="font-body text-purple-600 text-xl font-bold mt-2">
-            Times tables practice! <span aria-hidden="true">🎉</span>
+      {/* Mascot + Card */}
+      <div className="flex items-center gap-10 w-full max-w-2xl pop-in">
+        {/* Mascot placeholder — replace with actual animal image */}
+        <div className="hidden md:flex flex-col items-center gap-3 flex-shrink-0">
+          <div className="w-44 h-44 rounded-full bg-amber-100 border-4 border-amber-300 flex items-center justify-center shadow-lg">
+            <span className="font-display text-7xl font-bold text-amber-500">G</span>
+          </div>
+          <p className="font-body text-slate-400 text-sm text-center leading-snug">
+            Your animal<br />awaits...
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8 border-4 border-sky-300">
-          <h2 className="font-display text-3xl font-bold text-center text-violet-700 mb-6">
-            Sign In 🔑
-          </h2>
+        {/* Login card */}
+        <div className="flex-1 bg-white rounded-3xl shadow-lg p-8">
+          <h2 className="font-display text-2xl font-bold text-slate-800 mb-6">Sign in</h2>
 
           {error && (
-            <div role="alert" className="bg-red-100 border-2 border-red-400 text-red-700 rounded-2xl p-3 mb-5 text-center font-bold font-body">
-              <span aria-hidden="true">😬</span> {error}
+            <div role="alert" className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-3 mb-5 text-sm font-body">
+              {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-username" className="block font-display text-lg font-semibold text-gray-700 mb-2">
+              <label htmlFor="login-username" className="block font-body text-sm font-semibold text-slate-600 mb-2">
                 Username
               </label>
               <input
@@ -70,14 +70,14 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="font-body w-full border-2 border-blue-300 rounded-2xl px-4 py-3 text-lg text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50 transition-all"
+                className="font-body w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-lg text-slate-900 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 bg-white transition-all"
                 placeholder="your username"
                 required
                 autoComplete="username"
               />
             </div>
             <div>
-              <label htmlFor="login-password" className="block font-display text-lg font-semibold text-gray-700 mb-2">
+              <label htmlFor="login-password" className="block font-body text-sm font-semibold text-slate-600 mb-2">
                 Password
               </label>
               <input
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="font-body w-full border-2 border-pink-300 rounded-2xl px-4 py-3 text-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 bg-pink-50 transition-all"
+                className="font-body w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-lg text-slate-900 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 bg-white transition-all"
                 placeholder="your password"
                 required
                 autoComplete="current-password"
@@ -94,28 +94,21 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="font-display w-full bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-2xl py-4 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="font-display w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xl py-4 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
-              {loading ? "Signing in... ⏳" : "Let's Go! 🚀"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <p className="font-body text-center text-gray-600 mt-6 text-lg">
+          <p className="font-body text-center text-slate-500 mt-6">
             New here?{" "}
             <Link
               href="/signup"
-              className="text-purple-600 font-bold hover:text-purple-800 underline decoration-2 transition-colors"
+              className="text-violet-600 font-semibold hover:text-violet-800 transition-colors"
             >
-              Sign up! ✨
+              Sign up
             </Link>
           </p>
-        </div>
-
-        <div aria-hidden="true" className="flex justify-center gap-6 mt-8 text-3xl opacity-50 select-none">
-          <span className="text-red-400">➕</span>
-          <span className="text-amber-400">✖️</span>
-          <span className="text-green-400">➖</span>
-          <span className="text-blue-400">➗</span>
         </div>
       </div>
     </div>

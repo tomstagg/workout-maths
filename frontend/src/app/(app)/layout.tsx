@@ -24,43 +24,43 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-green-50 to-violet-100 font-body">
       {/* Navigation */}
       <nav
-        className="bg-white border-b-4 border-transparent shadow-md sticky top-0 z-50"
+        className="bg-white border-b-4 border-transparent shadow-sm sticky top-0 z-50"
         style={{ borderImage: "var(--rainbow) 1" }}
       >
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link
             href="/profile"
-            className="font-display text-2xl font-bold bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            className="font-display text-2xl font-bold rainbow-text hover:opacity-80 transition-opacity"
           >
-            Workout Maths ⭐
+            Workout Maths
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link
               href="/profile"
               className={`font-display font-semibold px-4 py-2 rounded-2xl transition-all text-lg ${
                 pathname === "/profile"
-                  ? "bg-violet-100 text-violet-700 border-2 border-violet-300"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-violet-100 text-violet-700 border-2 border-violet-200"
+                  : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              👤 Profile
+              Profile
             </Link>
             <Link
               href="/quiz"
               className={`font-display font-semibold px-4 py-2 rounded-2xl transition-all text-lg ${
                 pathname === "/quiz"
-                  ? "bg-amber-100 text-amber-700 border-2 border-amber-300"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-violet-100 text-violet-700 border-2 border-violet-200"
+                  : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              🧮 Quiz
+              Quiz
             </Link>
             <button
               onClick={handleLogout}
-              className="font-display font-semibold px-4 py-2 rounded-2xl bg-pink-100 text-pink-600 hover:bg-pink-200 transition-all text-lg border-2 border-pink-200"
+              className="font-display font-semibold px-4 py-2 rounded-2xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all text-lg"
             >
-              👋 Logout
+              Logout
             </button>
           </div>
         </div>
