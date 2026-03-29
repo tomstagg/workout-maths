@@ -16,20 +16,6 @@ interface AnswerRecord {
   correct_answer: number;
 }
 
-
-const dotColors = [
-  "bg-red-400",
-  "bg-orange-400",
-  "bg-amber-400",
-  "bg-yellow-400",
-  "bg-emerald-400",
-  "bg-teal-400",
-  "bg-sky-400",
-  "bg-blue-400",
-  "bg-violet-400",
-  "bg-pink-400",
-];
-
 export default function QuizPage() {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -103,7 +89,6 @@ export default function QuizPage() {
 
       setTimeout(async () => {
         if (currentIndex === 9) {
-          // Last question — submit
           if (timerRef.current) clearInterval(timerRef.current);
           setIsSubmitting(true);
           try {
@@ -135,10 +120,7 @@ export default function QuizPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div aria-hidden="true" className="text-6xl float-1 mb-4">🧮</div>
-          <p className="font-display text-2xl text-purple-600">Getting your quiz ready...</p>
-        </div>
+        <p className="font-display text-2xl text-slate-400">Getting your quiz ready...</p>
       </div>
     );
   }
@@ -146,19 +128,16 @@ export default function QuizPage() {
   if (hasNoTables) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center bg-white rounded-3xl p-12 shadow-xl border-4 border-amber-200 max-w-md">
-          <div className="text-6xl mb-4">😅</div>
-          <h2 className="font-display text-3xl font-bold text-gray-800 mb-4">
-            No tables selected!
-          </h2>
-          <p className="font-body text-gray-600 mb-6 text-lg">
-            You need to pick at least one times table on your profile first.
+        <div className="text-center bg-white rounded-3xl p-12 shadow-sm border border-slate-100 max-w-md">
+          <h2 className="font-display text-3xl font-bold text-slate-800 mb-4">No tables selected</h2>
+          <p className="font-body text-slate-500 mb-6 text-lg">
+            Pick at least one times table on your profile first.
           </p>
           <Link
             href="/profile"
-            className="font-display inline-block bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-xl px-8 py-4 rounded-full transition-all transform hover:scale-105"
+            className="font-display inline-block bg-violet-600 hover:bg-violet-700 text-white font-bold text-xl px-8 py-4 rounded-2xl transition-all transform hover:scale-[1.02]"
           >
-            Go to Profile 👤
+            Go to Profile
           </Link>
         </div>
       </div>
@@ -168,10 +147,7 @@ export default function QuizPage() {
   if (isSubmitting) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div aria-hidden="true" className="text-7xl float-1 mb-4">🚀</div>
-          <p className="font-display text-3xl text-purple-600">Calculating your score...</p>
-        </div>
+        <p className="font-display text-3xl text-slate-400">Calculating your score...</p>
       </div>
     );
   }
@@ -183,41 +159,41 @@ export default function QuizPage() {
     <div className="max-w-2xl mx-auto">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
-        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-sky-200 w-32">
-          <p className="font-body text-xs text-blue-600 uppercase font-semibold tracking-wide">Time</p>
-          <p className="font-display text-3xl font-bold text-blue-600">
-            ⏱ {formatTime(elapsedSeconds)}
+        {/* Timer */}
+        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100 w-28 text-center">
+          <p className="font-body text-xs text-slate-400 uppercase font-semibold tracking-wide mb-0.5">Time</p>
+          <p className="font-display text-2xl font-bold text-slate-700">
+            {formatTime(elapsedSeconds)}
           </p>
         </div>
 
+        {/* Progress */}
         <div className="text-center">
-          <p className="font-body text-gray-500 text-sm font-semibold uppercase tracking-wide">Question</p>
-          <p className="font-display text-3xl font-bold text-gray-800">
-            {currentIndex + 1}{" "}
-            <span className="text-gray-400 text-2xl">/ 10</span>
+          <p className="font-body text-slate-400 text-sm font-semibold uppercase tracking-wide">
+            {currentIndex + 1} <span className="text-slate-300">/ 10</span>
           </p>
-          {/* Progress dots */}
-          <div className="flex gap-1 mt-2 justify-center">
+          <div className="flex gap-1.5 mt-2 justify-center">
             {Array.from({ length: 10 }).map((_, i) => (
               <div
                 key={i}
                 className={`h-3 w-3 rounded-full transition-all ${
                   i < answers.length
                     ? answers[i].is_correct
-                      ? `${dotColors[i]}`
-                      : "bg-rose-400"
+                      ? "bg-emerald-400"
+                      : "bg-red-400"
                     : i === currentIndex
-                    ? `${dotColors[i]} scale-150 ring-2 ring-offset-1`
-                    : "bg-gray-200"
+                    ? "bg-violet-400 scale-125 ring-2 ring-violet-200 ring-offset-1"
+                    : "bg-slate-200"
                 }`}
               />
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl px-5 py-3 shadow-md border-2 border-violet-200 text-right">
-          <p className="font-body text-xs text-purple-600 uppercase font-semibold tracking-wide">Streak</p>
-          <p className="font-display text-3xl font-bold text-purple-600">
+        {/* Streak */}
+        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100 w-28 text-center">
+          <p className="font-body text-xs text-slate-400 uppercase font-semibold tracking-wide mb-0.5">Streak</p>
+          <p className="font-display text-2xl font-bold text-amber-500">
             {currentStreak === 0 ? "–" : `${currentStreak} 🔥`}
           </p>
         </div>
@@ -226,19 +202,20 @@ export default function QuizPage() {
       {/* Streak badge */}
       {streakBadge && (
         <div className="text-center mb-4 slide-up">
-          <span className="font-display inline-block bg-gradient-to-r from-orange-400 to-red-400 text-white px-6 py-2 rounded-full text-xl font-bold shadow-lg streak-pulse">
+          <span className="font-display inline-block bg-amber-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-sm streak-pulse">
             {streakBadge.emoji} {currentStreak} in a row! {streakBadge.label}!
           </span>
         </div>
       )}
 
       {/* Question card */}
-      <div className="bg-white rounded-3xl shadow-xl border-4 border-amber-200 p-8 mb-6 text-center">
-        <p className="font-body text-gray-400 text-lg mb-2">What is...</p>
-        <p className="font-display text-8xl font-bold text-gray-900 leading-none tracking-tight">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-6 text-center">
+        <p className="font-body text-slate-400 text-base mb-3">What is...</p>
+        <p className="font-display font-bold text-slate-900 leading-none tracking-tight"
+           style={{ fontSize: "clamp(4rem, 12vw, 6rem)" }}>
           {currentQuestion.table} × {currentQuestion.multiplier}
         </p>
-        <p className="font-display text-5xl text-gray-500 mt-2">= ?</p>
+        <p className="font-display text-4xl text-slate-400 mt-2">= ?</p>
       </div>
 
       {/* Answer buttons */}
@@ -248,19 +225,19 @@ export default function QuizPage() {
           const isCorrectOption = option === currentQuestion.correctAnswer;
 
           let btnClass =
-            "font-display text-5xl font-bold py-7 min-h-[5rem] rounded-3xl border-4 transition-all transform active:scale-90 shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400 focus-visible:ring-offset-2 ";
+            "font-display text-5xl font-bold py-7 min-h-[5rem] rounded-3xl border-2 transition-all transform active:scale-90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-400 focus-visible:ring-offset-2 ";
 
           if (selectedOption === null) {
             btnClass +=
-              "bg-white border-gray-200 text-gray-800 hover:border-sky-400 hover:bg-sky-50 hover:scale-105 hover:shadow-lg cursor-pointer";
+              "bg-white border-slate-200 text-slate-800 hover:border-violet-300 hover:bg-violet-50 hover:scale-105 cursor-pointer";
           } else if (isCorrectOption) {
-            btnClass += `bg-green-400 border-green-500 text-white scale-105 shadow-lg btn-correct ${
+            btnClass += `bg-emerald-100 border-emerald-500 text-emerald-700 scale-105 btn-correct ${
               optionResult === "correct" && isSelected ? "btn-correct-pulse" : ""
             }`;
           } else if (isSelected && !isCorrectOption) {
-            btnClass += "bg-red-400 border-red-500 text-white btn-wrong";
+            btnClass += "bg-red-100 border-red-400 text-red-600 btn-wrong";
           } else {
-            btnClass += "bg-gray-100 border-gray-200 text-gray-400";
+            btnClass += "bg-slate-50 border-slate-100 text-slate-300";
           }
 
           return (
@@ -278,33 +255,28 @@ export default function QuizPage() {
 
       {/* Answer history */}
       {answers.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-md border-2 border-gray-100 p-4">
-          <p className="font-display text-gray-400 text-sm font-semibold uppercase tracking-wide mb-3">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-4">
+          <p className="font-body text-slate-400 text-xs font-semibold uppercase tracking-wide mb-3">
             Previous answers
           </p>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="space-y-1.5 max-h-40 overflow-y-auto">
             {[...answers].reverse().map((a, i) => (
               <div
                 key={i}
-                className={`flex items-center justify-between px-4 py-2 rounded-xl text-sm font-body ${
-                  a.is_correct
-                    ? "bg-emerald-50 border border-emerald-200"
-                    : "bg-rose-50 border border-rose-200"
-                }`}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-body bg-slate-50"
               >
-                <span className="font-semibold text-gray-700">
+                <span className="font-semibold text-slate-700">
                   {a.table_number} × {a.multiplier}
                 </span>
-                <span className="text-gray-500">
-                  Your answer:{" "}
-                  <span className={a.is_correct ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
+                <span className="text-slate-500">
+                  <span className={a.is_correct ? "text-emerald-600 font-bold" : "text-red-500 font-bold"}>
                     {a.selected_answer}
                   </span>
                   {!a.is_correct && (
-                    <span className="text-green-600 font-bold ml-2">✓ {a.correct_answer}</span>
+                    <span className="text-emerald-600 font-bold ml-2">✓ {a.correct_answer}</span>
                   )}
                 </span>
-                <span>{a.is_correct ? "✅" : "❌"}</span>
+                <span className={`w-4 h-4 rounded-full flex-shrink-0 ${a.is_correct ? "bg-emerald-400" : "bg-red-400"}`} />
               </div>
             ))}
           </div>

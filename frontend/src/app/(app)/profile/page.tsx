@@ -7,19 +7,65 @@ import { api, type LeaderboardEntry, type UserProfile } from "@/lib/api";
 
 const ALL_TABLES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-const TABLE_TIER: Record<number, { label: string; color: string; bg: string }> = {
-  2: { label: "Easy", color: "text-green-700", bg: "bg-green-100 border-green-300" },
-  5: { label: "Easy", color: "text-green-700", bg: "bg-green-100 border-green-300" },
-  10: { label: "Easy", color: "text-green-700", bg: "bg-green-100 border-green-300" },
-  3: { label: "Medium", color: "text-amber-700", bg: "bg-amber-100 border-amber-300" },
-  4: { label: "Medium", color: "text-amber-700", bg: "bg-amber-100 border-amber-300" },
-  6: { label: "Medium", color: "text-amber-700", bg: "bg-amber-100 border-amber-300" },
-  8: { label: "Medium", color: "text-amber-700", bg: "bg-amber-100 border-amber-300" },
-  9: { label: "Medium", color: "text-amber-700", bg: "bg-amber-100 border-amber-300" },
-  7: { label: "Hard", color: "text-red-700", bg: "bg-red-100 border-red-300" },
-  11: { label: "Hard", color: "text-red-700", bg: "bg-red-100 border-red-300" },
-  12: { label: "Hard", color: "text-red-700", bg: "bg-red-100 border-red-300" },
+const TABLE_DIFFICULTY: Record<number, "Easy" | "Medium" | "Hard"> = {
+  2: "Easy", 5: "Easy", 10: "Easy",
+  3: "Medium", 4: "Medium", 6: "Medium", 8: "Medium", 9: "Medium",
+  7: "Hard", 11: "Hard", 12: "Hard",
 };
+
+const PROGRESSION_TIERS = [
+  { points: 0, label: "Plain animal" },
+  { points: 50, label: "Hat" },
+  { points: 150, label: "Sunglasses" },
+  { points: 300, label: "Vibrant border" },
+  { points: 500, label: "Sparkle ring" },
+  { points: 1000, label: "Crown" },
+];
+
+function getProgression(points: number) {
+  const earnedTiers = PROGRESSION_TIERS.filter((t) => t.points <= points);
+  const currentTier = earnedTiers[earnedTiers.length - 1];
+  const nextTier = PROGRESSION_TIERS[earnedTiers.length];
+  const progressToNext = nextTier
+    ? ((points - currentTier.points) / (nextTier.points - currentTier.points)) * 100
+    : 100;
+  return { currentTier, nextTier, progressToNext };
+}
+
+const ANIMAL_STYLES: Record<string, { bg: string; border: string; text: string }> = {
+  giraffe: { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-600" },
+  lion: { bg: "bg-yellow-100", border: "border-yellow-500", text: "text-yellow-700" },
+  monkey: { bg: "bg-orange-100", border: "border-orange-400", text: "text-orange-600" },
+};
+
+function AvatarCircle({
+  animalType,
+  initial,
+  size = "md",
+}: {
+  animalType: string | null;
+  initial: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const style = animalType
+    ? (ANIMAL_STYLES[animalType] ?? { bg: "bg-violet-100", border: "border-violet-300", text: "text-violet-600" })
+    : { bg: "bg-slate-100", border: "border-slate-300", text: "text-slate-500" };
+
+  const sizeClass =
+    size === "lg"
+      ? "w-20 h-20 text-3xl border-4"
+      : size === "sm"
+      ? "w-9 h-9 text-sm border-2"
+      : "w-14 h-14 text-xl border-3";
+
+  return (
+    <div
+      className={`${sizeClass} rounded-full ${style.bg} border ${style.border} flex items-center justify-center font-display font-bold ${style.text} flex-shrink-0`}
+    >
+      {initial.charAt(0).toUpperCase()}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -64,10 +110,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div aria-hidden="true" className="text-6xl float-1 mb-4">⭐</div>
-          <p className="font-display text-2xl text-purple-600">Loading your stuff...</p>
-        </div>
+        <p className="font-display text-2xl text-slate-400">Loading...</p>
       </div>
     );
   }
@@ -76,81 +119,120 @@ export default function ProfilePage() {
 
   const quizCount =
     leaderboard.find((e) => e.username === profile.username)?.quiz_count ?? 0;
+  const { currentTier, nextTier, progressToNext } = getProgression(profile.total_points);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-3xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <p className="font-body text-white/80 text-lg mb-1">Welcome back,</p>
-            <h1 className="font-display text-5xl font-bold">{profile.display_name}! 👋</h1>
-            <p className="font-body text-white/80 mt-2">{quizCount} quizzes completed</p>
-          </div>
-          <div className="bg-white/20 backdrop-blur rounded-3xl px-8 py-6 text-center border-2 border-white/30">
-            <p className="font-body text-purple-200 text-sm uppercase tracking-wide font-semibold">
-              Total Points
+    <div className="space-y-6">
+      {/* Hero card: avatar + name + points + progression */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+        <div className="flex items-center gap-5">
+          <AvatarCircle
+            animalType={profile.animal_type}
+            initial={profile.display_name}
+            size="lg"
+          />
+          <div className="flex-1 min-w-0">
+            <h1 className="font-display text-3xl font-bold text-slate-800 leading-tight">
+              {profile.display_name}
+            </h1>
+            <p className="font-body text-slate-500 text-sm mt-0.5">
+              {quizCount} quiz{quizCount !== 1 ? "zes" : ""} completed
             </p>
-            <p className="font-display text-6xl font-bold text-amber-300">
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="font-body text-xs text-slate-400 uppercase tracking-wide font-semibold">Points</p>
+            <p className="font-display text-4xl font-bold text-amber-500">
               {profile.total_points.toLocaleString()}
             </p>
-            <p className="font-body text-purple-200 text-sm">⭐ points earned</p>
+          </div>
+        </div>
+
+        {/* Progression bar */}
+        <div className="mt-5 pt-5 border-t border-slate-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-body text-sm font-semibold text-slate-600">
+              {currentTier.label}
+            </span>
+            {nextTier ? (
+              <span className="font-body text-sm text-slate-400">
+                {nextTier.points - profile.total_points} pts to{" "}
+                <span className="font-semibold text-violet-600">{nextTier.label}</span>
+              </span>
+            ) : (
+              <span className="font-body text-sm font-semibold text-amber-500">Max level!</span>
+            )}
+          </div>
+          <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-violet-500 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(progressToNext, 100)}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Table selector */}
-      <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-sky-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-3xl font-bold text-gray-800">
-            Pick Your Tables 🎯
-          </h2>
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-display text-2xl font-bold text-slate-800">Pick Your Tables</h2>
           {saving && (
-            <span className="font-body text-sm text-gray-400 animate-pulse">Saving...</span>
+            <span className="font-body text-sm text-slate-400 animate-pulse">Saving...</span>
           )}
         </div>
-        <p className="font-body text-gray-500 mb-6">
-          Choose which times tables to practise. Mix them up for more points! 💪
+        <p className="font-body text-slate-500 text-sm mb-5">
+          Choose which times tables to practise. Harder tables earn more points.
         </p>
 
         <div className="grid grid-cols-5 gap-3 sm:grid-cols-6 md:grid-cols-11">
           {ALL_TABLES.map((t) => {
-            const tier = TABLE_TIER[t];
             const selected = selectedTables.includes(t);
+            const difficulty = TABLE_DIFFICULTY[t];
             return (
               <button
                 key={t}
                 onClick={() => toggleTable(t)}
                 aria-label={`Table ${t}`}
                 aria-pressed={selected}
-                className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all transform hover:scale-110 active:scale-95 font-display font-bold text-xl shadow-sm ${
+                className={`relative flex flex-col items-center justify-center pt-3 pb-2 px-2 rounded-2xl border-2 transition-all transform hover:scale-110 active:scale-95 font-display font-bold shadow-sm ${
                   selected
-                    ? `${tier.bg} ${tier.color} border-current scale-105 shadow-md`
-                    : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-400"
+                    ? "bg-violet-50 border-violet-500 text-violet-700 scale-105 shadow-md"
+                    : "bg-white text-slate-500 border-slate-200 hover:border-violet-300 hover:text-violet-500"
                 }`}
               >
-                <span className="text-2xl">{t}</span>
+                <span className={`text-xs font-body font-semibold mb-0.5 ${
+                  difficulty === "Easy" ? "text-emerald-500" :
+                  difficulty === "Medium" ? "text-amber-500" :
+                  "text-red-400"
+                }`}>
+                  {difficulty === "Easy" ? "E" : difficulty === "Medium" ? "M" : "H"}
+                </span>
+                <span className="text-xl">{t}</span>
                 {selected && (
-                  <span aria-hidden="true" className="absolute -top-2 -right-2 text-lg">✓</span>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-violet-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                  >
+                    ✓
+                  </span>
                 )}
               </button>
             );
           })}
         </div>
 
-        <div className="flex gap-4 mt-5 flex-wrap">
-          <span className="font-body text-sm font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-            🟢 Easy: 1pt (×2, ×5, ×10)
+        <div className="flex gap-3 mt-4 flex-wrap text-xs font-body font-semibold">
+          <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+            E = Easy (×2, ×5, ×10) — 1pt
           </span>
-          <span className="font-body text-sm font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
-            🟡 Medium: 2pts (×3,4,6,8,9)
+          <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+            M = Medium (×3,4,6,8,9) — 2pts
           </span>
-          <span className="font-body text-sm font-semibold text-red-700 bg-red-100 px-3 py-1 rounded-full border border-red-200">
-            🔴 Hard: 3pts (×7, ×11, ×12)
+          <span className="text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100">
+            H = Hard (×7, ×11, ×12) — 3pts
           </span>
         </div>
 
-        <div className="h-1 rainbow-bar rounded-full mt-4" />
+        <div className="h-1 rainbow-bar rounded-full mt-5" />
       </div>
 
       {/* Start quiz button */}
@@ -158,75 +240,71 @@ export default function ProfilePage() {
         {selectedTables.length > 0 ? (
           <Link
             href="/quiz"
-            className="font-display inline-block bg-gradient-to-r from-sky-400 to-violet-500 hover:from-sky-500 hover:to-violet-600 text-white font-bold text-3xl px-12 py-5 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl"
+            className="font-display inline-block bg-violet-600 hover:bg-violet-700 text-white font-bold text-2xl px-12 py-5 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-sm"
           >
-            Start Quiz! 🚀
+            Start Quiz
           </Link>
         ) : (
-          <div className="font-display text-2xl text-gray-400 bg-gray-100 rounded-3xl py-5 px-12 inline-block">
-            Select at least one table to start ☝️
+          <div className="font-display text-xl text-slate-400 bg-slate-100 rounded-2xl py-5 px-12 inline-block">
+            Select at least one table to start
           </div>
         )}
       </div>
 
       {/* Leaderboard */}
       {leaderboard.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-violet-200">
-          <h2 className="font-display text-3xl font-bold text-gray-800 mb-6">
-            🏆 Leaderboard
-          </h2>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+          <h2 className="font-display text-2xl font-bold text-slate-800 mb-5">Leaderboard</h2>
           <div className="space-y-2">
             {leaderboard.map((entry) => {
               const isMe = entry.username === profile.username;
               return (
                 <div
                   key={entry.username}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
+                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${
                     isMe
-                      ? "bg-gradient-to-r from-sky-100 to-violet-100 border-2 border-violet-300 shadow-md"
-                      : "bg-gray-50 border-2 border-transparent hover:border-gray-200"
+                      ? "bg-violet-50 border-l-4 border-violet-500"
+                      : "bg-slate-50 hover:bg-slate-100"
                   }`}
                 >
                   <span
-                    className={`font-display text-2xl font-bold w-10 text-center ${
-                      entry.rank === 1
-                        ? "text-amber-500"
-                        : entry.rank === 2
-                        ? "text-gray-400"
-                        : entry.rank === 3
-                        ? "text-orange-400"
-                        : "text-gray-400"
+                    className={`font-display text-xl font-bold w-8 text-center flex-shrink-0 ${
+                      entry.rank <= 3 ? "text-amber-500" : "text-slate-400"
                     }`}
                   >
-                    {entry.rank === 1
-                      ? "🥇"
-                      : entry.rank === 2
-                      ? "🥈"
-                      : entry.rank === 3
-                      ? "🥉"
-                      : `#${entry.rank}`}
+                    {entry.rank <= 3 ? `${entry.rank}` : `${entry.rank}`}
                   </span>
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-sm flex-shrink-0 ${
+                      entry.rank === 1 ? "bg-amber-100 text-amber-700 border-2 border-amber-300" :
+                      entry.rank === 2 ? "bg-slate-100 text-slate-600 border-2 border-slate-300" :
+                      entry.rank === 3 ? "bg-orange-100 text-orange-600 border-2 border-orange-300" :
+                      "bg-slate-100 text-slate-500 border border-slate-200"
+                    }`}
+                  >
+                    {entry.display_name.charAt(0).toUpperCase()}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p
                       className={`font-display text-lg font-semibold truncate ${
-                        isMe ? "text-violet-700" : "text-gray-800"
+                        isMe ? "text-violet-700" : "text-slate-800"
                       }`}
                     >
                       {entry.display_name}
                       {isMe && (
-                        <span className="font-body text-sm text-violet-600 ml-2">(you!)</span>
+                        <span className="font-body text-sm text-violet-500 ml-2 font-normal">(you)</span>
                       )}
                     </p>
-                    <p className="font-body text-sm text-gray-500">
+                    <p className="font-body text-xs text-slate-400">
                       {entry.quiz_count} quiz{entry.quiz_count !== 1 ? "zes" : ""}
                     </p>
                   </div>
                   <span
-                    className={`font-display text-2xl font-bold ${
-                      isMe ? "text-violet-600" : "text-purple-600"
+                    className={`font-display text-xl font-bold flex-shrink-0 ${
+                      isMe ? "text-amber-500" : "text-slate-600"
                     }`}
                   >
-                    {entry.total_points.toLocaleString()} ⭐
+                    {entry.total_points.toLocaleString()} <span className="text-amber-400 text-lg">★</span>
                   </span>
                 </div>
               );

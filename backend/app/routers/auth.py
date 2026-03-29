@@ -40,6 +40,7 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
         username=body.username,
         password_hash=hash_password(body.password),
         display_name=body.display_name or body.username,
+        animal_type=body.animal_type,
     )
     db.add(user)
     await db.commit()
@@ -74,6 +75,7 @@ async def me(
         id=user.id,
         username=user.username,
         display_name=user.display_name,
+        animal_type=user.animal_type,
         total_points=user.total_points,
         created_at=user.created_at,
         selected_tables=selected_tables,

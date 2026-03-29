@@ -8,6 +8,7 @@ class SignupRequest(BaseModel):
     username: str
     password: str
     display_name: str | None = None
+    animal_type: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -24,6 +25,7 @@ class UserProfile(BaseModel):
     id: uuid.UUID
     username: str
     display_name: str
+    animal_type: str | None = None
     total_points: int
     created_at: datetime
     selected_tables: list[int]
