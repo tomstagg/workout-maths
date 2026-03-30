@@ -15,7 +15,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
-      `connect-src 'self' ${API_URL}`,
+      "connect-src 'self'",
     ].join("; "),
   },
 ];
@@ -23,6 +23,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: `${API_URL}/:path*` }];
   },
 };
 

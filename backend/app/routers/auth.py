@@ -16,16 +16,14 @@ from app.schemas.auth import LoginRequest, SignupRequest, UserProfile
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-_IS_PROD = settings.app_env == "production"
-
 
 def _set_auth_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key="token",
         value=token,
         httponly=True,
-        samesite="none" if _IS_PROD else "lax",
-        secure=_IS_PROD,
+        samesite="lax",
+        secure=settings.app_env == "production",
         max_age=settings.jwt_expire_minutes * 60,
         path="/",
     )
