@@ -11,9 +11,8 @@ async def test_signup_approved(client: AsyncClient, allowed_alice):
         },
     )
     assert response.status_code == 201
-    data = response.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    assert response.json() == {"ok": True}
+    assert "token" in response.cookies
 
 
 async def test_signup_unapproved(client: AsyncClient):
@@ -47,7 +46,8 @@ async def test_login_valid(client: AsyncClient, alice):
         },
     )
     assert response.status_code == 200
-    assert "access_token" in response.json()
+    assert response.json() == {"ok": True}
+    assert "token" in response.cookies
 
 
 async def test_login_wrong_password(client: AsyncClient, alice):
@@ -62,9 +62,7 @@ async def test_login_wrong_password(client: AsyncClient, alice):
 
 
 async def test_me_with_token(client: AsyncClient, alice, user_token: str):
-    response = await client.get(
-        "/auth/me", headers={"Authorization": f"Bearer {user_token}"}
-    )
+    response = await client.get("/auth/me", cookies={"token": user_token})
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == "alice"
