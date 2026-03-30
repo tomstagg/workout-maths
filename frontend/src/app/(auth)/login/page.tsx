@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/lib/api";
 
 export default function LoginPage() {
@@ -28,28 +29,26 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      {/* Title */}
-      <div className="text-center mb-10">
+      {/* Title + Logo */}
+      <div className="text-center mb-8 pop-in">
         <h1 className="font-display text-5xl font-bold tracking-wide rainbow-text drop-shadow-sm">
           Workout Maths
         </h1>
         <p className="font-body text-slate-500 text-lg mt-2">Times tables practice</p>
+        <div className="mt-6 flex justify-center">
+          <Image
+            src="/lion-giraffe-monkey.png"
+            alt="Workout Maths animals"
+            width={240}
+            height={240}
+            priority
+          />
+        </div>
       </div>
 
-      {/* Mascot + Card */}
-      <div className="flex items-center gap-10 w-full max-w-2xl pop-in">
-        {/* Mascot placeholder — replace with actual animal image */}
-        <div className="hidden md:flex flex-col items-center gap-3 flex-shrink-0">
-          <div className="w-44 h-44 rounded-full bg-amber-100 border-4 border-amber-300 flex items-center justify-center shadow-lg">
-            <span className="font-display text-7xl font-bold text-amber-500">G</span>
-          </div>
-          <p className="font-body text-slate-400 text-sm text-center leading-snug">
-            Your animal<br />awaits...
-          </p>
-        </div>
-
-        {/* Login card */}
-        <div className="flex-1 bg-white rounded-3xl shadow-lg p-8">
+      {/* Login card */}
+      <div className="w-full max-w-sm pop-in">
+        <div className="bg-white rounded-3xl shadow-lg p-8">
           <h2 className="font-display text-2xl font-bold text-slate-800 mb-6">Sign in</h2>
 
           {error && (
@@ -112,3 +111,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
