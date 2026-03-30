@@ -7,22 +7,22 @@ async def test_update_tables_valid(client: AsyncClient, alice, user_token: str):
     response = await client.put(
         "/users/me/tables",
         json={"table_numbers": [2, 5, 7]},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 200
     assert response.json() == [2, 5, 7]
 
 
-async def test_update_tables_filters_out_of_range(
+async def test_update_tables_rejects_out_of_range(
     client: AsyncClient, alice, user_token: str
 ):
+    # Schema now rejects values outside 2-12 with a 422
     response = await client.put(
         "/users/me/tables",
         json={"table_numbers": [1, 5, 7, 13]},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
-    assert response.status_code == 200
-    assert response.json() == [5, 7]
+    assert response.status_code == 422
 
 
 async def test_update_tables_replaces_previous(
@@ -31,12 +31,12 @@ async def test_update_tables_replaces_previous(
     await client.put(
         "/users/me/tables",
         json={"table_numbers": [2, 5]},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     response = await client.put(
         "/users/me/tables",
         json={"table_numbers": [7, 9]},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 200
     assert response.json() == [7, 9]
@@ -44,7 +44,7 @@ async def test_update_tables_replaces_previous(
 
 async def test_get_stats_empty(client: AsyncClient, alice, user_token: str):
     response = await client.get(
-        "/users/me/stats", headers={"Authorization": f"Bearer {user_token}"}
+        "/users/me/stats", cookies={"token": user_token}
     )
     assert response.status_code == 200
     data = response.json()
@@ -57,11 +57,11 @@ async def test_get_stats(client: AsyncClient, alice, user_token: str):
     await client.put(
         "/users/me/tables",
         json={"table_numbers": [2, 5]},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
 
     response = await client.get(
-        "/users/me/stats", headers={"Authorization": f"Bearer {user_token}"}
+        "/users/me/stats", cookies={"token": user_token}
     )
     assert response.status_code == 200
     data = response.json()
@@ -84,11 +84,11 @@ async def test_get_stats_after_quiz(client: AsyncClient, alice, user_token: str)
     await client.post(
         "/quiz/sessions",
         json={"started_at": now, "duration_seconds": 45.0, "answers": answers},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
 
     response = await client.get(
-        "/users/me/stats", headers={"Authorization": f"Bearer {user_token}"}
+        "/users/me/stats", cookies={"token": user_token}
     )
     data = response.json()
     assert data["quiz_count"] == 1

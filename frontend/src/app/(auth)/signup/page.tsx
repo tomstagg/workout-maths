@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { api, type TokenResponse } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const ANIMALS = [
   { id: "giraffe", name: "Giraffe", initial: "G", bg: "bg-amber-100", border: "border-amber-300", text: "text-amber-600" },
@@ -37,8 +36,7 @@ export default function SignupPage() {
     try {
       const body: Record<string, string> = { username, password, animal_type: animalType };
       if (displayName.trim()) body.display_name = displayName.trim();
-      const data = await api.post<TokenResponse>("/auth/signup", body);
-      setToken(data.access_token);
+      await api.post("/auth/signup", body);
       router.push("/profile");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Signup failed");

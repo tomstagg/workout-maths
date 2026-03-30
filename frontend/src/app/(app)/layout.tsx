@@ -3,20 +3,18 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { clearToken, isLoggedIn } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoggedIn()) {
-      router.replace("/login");
-    }
+    api.get("/auth/me").catch(() => router.replace("/login"));
   }, [router]);
 
-  function handleLogout() {
-    clearToken();
+  async function handleLogout() {
+    await api.post("/auth/logout", {}).catch(() => {});
     router.push("/login");
   }
 

@@ -3,16 +3,13 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
-
-bearer = HTTPBearer()
 
 
 def hash_password(plain: str) -> str:
@@ -30,10 +27,13 @@ def create_access_token(data: dict) -> str:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer),
+    token: str | None = Cookie(default=None, alias="token"),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    token = credentials.credentials
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
     try:
         payload = jwt.decode(
             token, settings.secret_key, algorithms=[settings.jwt_algorithm]
@@ -58,9 +58,12 @@ async def get_current_user(
 
 
 async def get_current_admin(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer),
+    token: str | None = Cookie(default=None, alias="admin_token"),
 ) -> dict:
-    token = credentials.credentials
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
     try:
         payload = jwt.decode(
             token, settings.secret_key, algorithms=[settings.jwt_algorithm]

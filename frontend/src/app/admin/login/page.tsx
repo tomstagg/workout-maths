@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setAdminToken } from "@/lib/auth";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { api } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,17 +16,7 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/admin/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Login failed" }));
-        throw new Error(err.detail ?? "Login failed");
-      }
-      const data = await res.json();
-      setAdminToken(data.access_token);
+      await api.post("/admin/login", { username, password });
       router.push("/admin");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");

@@ -40,7 +40,7 @@ async def test_submit_all_correct_easy(client: AsyncClient, alice, user_token: s
             "duration_seconds": 45.0,
             "answers": _make_answers(2),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -59,7 +59,7 @@ async def test_submit_wrong_answer_count(client: AsyncClient, alice, user_token:
             "duration_seconds": 45.0,
             "answers": _make_answers(2)[:9],
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 400
 
@@ -73,7 +73,7 @@ async def test_submit_all_correct_hard(client: AsyncClient, alice, user_token: s
             "duration_seconds": 60.0,
             "answers": _make_answers(7),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -91,12 +91,10 @@ async def test_list_sessions_after_submit(client: AsyncClient, alice, user_token
             "duration_seconds": 45.0,
             "answers": _make_answers(2),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
 
-    response = await client.get(
-        "/quiz/sessions", headers={"Authorization": f"Bearer {user_token}"}
-    )
+    response = await client.get("/quiz/sessions", cookies={"token": user_token})
     assert response.status_code == 200
     assert len(response.json()) == 1
 
@@ -112,7 +110,7 @@ async def test_total_points_incremented(
             "duration_seconds": 45.0,
             "answers": _make_answers(2),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
 
     await db_session.refresh(alice)
@@ -130,7 +128,7 @@ async def test_submit_valid_quiz_mixed(client: AsyncClient, alice, user_token: s
             "duration_seconds": 60.0,
             "answers": _make_mixed_answers(2, mask),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -150,7 +148,7 @@ async def test_streak_bonus_3(client: AsyncClient, alice, user_token: str):
             "duration_seconds": 30.0,
             "answers": _make_mixed_answers(2, mask),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -169,7 +167,7 @@ async def test_streak_bonus_5(client: AsyncClient, alice, user_token: str):
             "duration_seconds": 30.0,
             "answers": _make_mixed_answers(2, mask),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -187,7 +185,7 @@ async def test_streak_bonus_10(client: AsyncClient, alice, user_token: str):
             "duration_seconds": 30.0,
             "answers": _make_answers(2, all_correct=True),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -206,7 +204,7 @@ async def test_streak_resets_on_wrong(client: AsyncClient, alice, user_token: st
             "duration_seconds": 30.0,
             "answers": _make_mixed_answers(2, mask),
         },
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     assert response.status_code == 201
     data = response.json()
@@ -222,7 +220,7 @@ async def test_points_accumulate_on_user(
         await client.post(
             "/quiz/sessions",
             json={"started_at": now, "duration_seconds": 45.0, "answers": _make_answers(2)},
-            headers={"Authorization": f"Bearer {user_token}"},
+            cookies={"token": user_token},
         )
     await db_session.refresh(alice)
     assert alice.total_points == 100  # 50 per quiz × 2
@@ -236,11 +234,9 @@ async def test_list_sessions_returns_own_only(
     await client.post(
         "/quiz/sessions",
         json={"started_at": now, "duration_seconds": 45.0, "answers": _make_answers(2)},
-        headers={"Authorization": f"Bearer {user_token}"},
+        cookies={"token": user_token},
     )
     # Bob should see 0 sessions
-    response = await client.get(
-        "/quiz/sessions", headers={"Authorization": f"Bearer {bob_token}"}
-    )
+    response = await client.get("/quiz/sessions", cookies={"token": bob_token})
     assert response.status_code == 200
     assert response.json() == []

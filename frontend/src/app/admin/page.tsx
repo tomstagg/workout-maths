@@ -2,26 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { clearAdminToken, getAdminToken } from "@/lib/auth";
-import type { AllowedUsernameResponse } from "@/lib/api";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getAdminToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail ?? "Request failed");
-  }
-  if (res.status === 204) return undefined as T;
-  return res.json();
-}
+import { api, type AllowedUsernameResponse } from "@/lib/api";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -33,20 +14,15 @@ export default function AdminPage() {
   const [deleteError, setDeleteError] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!getAdminToken()) {
-      router.replace("/admin/login");
-      return;
-    }
     loadUsernames();
   }, [router]);
 
   async function loadUsernames() {
     try {
-      const data = await adminFetch<AllowedUsernameResponse[]>("/admin/usernames");
+      const data = await api.get<AllowedUsernameResponse[]>("/admin/usernames");
       setUsernames(data);
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes("401")) {
-        clearAdminToken();
         router.push("/admin/login");
       }
     } finally {
@@ -60,9 +36,8 @@ export default function AdminPage() {
     setAdding(true);
     setError("");
     try {
-      await adminFetch<AllowedUsernameResponse>("/admin/usernames", {
-        method: "POST",
-        body: JSON.stringify({ username: newUsername.trim() }),
+      await api.post<AllowedUsernameResponse>("/admin/usernames", {
+        username: newUsername.trim(),
       });
       setNewUsername("");
       await loadUsernames();
@@ -76,9 +51,7 @@ export default function AdminPage() {
   async function handleDelete(username: string) {
     setDeleteError((prev) => ({ ...prev, [username]: "" }));
     try {
-      await adminFetch<void>(`/admin/usernames/${encodeURIComponent(username)}`, {
-        method: "DELETE",
-      });
+      await api.delete<void>(`/admin/usernames/${encodeURIComponent(username)}`);
       setUsernames((prev) => prev.filter((u) => u.username !== username));
     } catch (err: unknown) {
       setDeleteError((prev) => ({
@@ -88,8 +61,8 @@ export default function AdminPage() {
     }
   }
 
-  function handleLogout() {
-    clearAdminToken();
+  async function handleLogout() {
+    await api.post("/admin/logout", {}).catch(() => {});
     router.push("/admin/login");
   }
 

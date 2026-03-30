@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,17 +8,37 @@ from app.auth import (
     hash_password,
     verify_password,
 )
+from app.config import settings
 from app.database import get_db
+from app.limiter import limiter
 from app.models.user import AllowedUsername, User, UserTablePreference
-from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserProfile
+from app.schemas.auth import LoginRequest, SignupRequest, UserProfile
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+_IS_PROD = settings.app_env == "production"
 
-@router.post(
-    "/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
-)
-async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
+
+def _set_auth_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key="token",
+        value=token,
+        httponly=True,
+        samesite="none" if _IS_PROD else "lax",
+        secure=_IS_PROD,
+        max_age=settings.jwt_expire_minutes * 60,
+        path="/",
+    )
+
+
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
+async def signup(
+    request: Request,
+    response: Response,
+    body: SignupRequest,
+    db: AsyncSession = Depends(get_db),
+):
     # Check username is pre-approved
     allowed = await db.execute(
         select(AllowedUsername).where(AllowedUsername.username == body.username)
@@ -47,11 +67,18 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
     await db.refresh(user)
 
     token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    _set_auth_cookie(response, token)
+    return {"ok": True}
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+@router.post("/login")
+@limiter.limit("10/minute")
+async def login(
+    request: Request,
+    response: Response,
+    body: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
     if user is None or not verify_password(body.password, user.password_hash):
@@ -60,7 +87,14 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         )
 
     token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    _set_auth_cookie(response, token)
+    return {"ok": True}
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("token", path="/")
+    return {"ok": True}
 
 
 @router.get("/me", response_model=UserProfile)
