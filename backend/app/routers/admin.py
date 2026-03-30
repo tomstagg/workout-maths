@@ -1,23 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_access_token, get_current_admin
 from app.config import settings
 from app.database import get_db
+from app.limiter import limiter
 from app.models.user import AllowedUsername
 from app.schemas.admin import (
     AdminLoginRequest,
     AllowedUsernameCreate,
     AllowedUsernameResponse,
 )
-from app.schemas.auth import TokenResponse
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+_IS_PROD = settings.app_env == "production"
 
-@router.post("/login", response_model=TokenResponse)
-async def admin_login(body: AdminLoginRequest):
+
+@router.post("/login")
+@limiter.limit("5/minute")
+async def admin_login(
+    request: Request,
+    response: Response,
+    body: AdminLoginRequest,
+):
     if (
         body.username != settings.admin_username
         or body.password != settings.admin_password
@@ -26,7 +33,22 @@ async def admin_login(body: AdminLoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin credentials"
         )
     token = create_access_token({"sub": "admin", "is_admin": True})
-    return TokenResponse(access_token=token)
+    response.set_cookie(
+        key="admin_token",
+        value=token,
+        httponly=True,
+        samesite="none" if _IS_PROD else "lax",
+        secure=_IS_PROD,
+        max_age=settings.jwt_expire_minutes * 60,
+        path="/",
+    )
+    return {"ok": True}
+
+
+@router.post("/logout")
+async def admin_logout(response: Response):
+    response.delete_cookie("admin_token", path="/")
+    return {"ok": True}
 
 
 @router.get("/usernames", response_model=list[AllowedUsernameResponse])

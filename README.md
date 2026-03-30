@@ -43,16 +43,17 @@ npm run dev
 
 ### Environment variables
 
-| Variable | Where | Description |
-|---|---|---|
-| `DATABASE_URL` | backend | `postgresql+asyncpg://user:pass@host:5432/db` |
-| `SECRET_KEY` | backend | Generate: `openssl rand -hex 32` |
-| `ADMIN_USERNAME` | backend | Admin login (default: `admin`) |
-| `ADMIN_PASSWORD` | backend | Admin login password |
-| `APP_ENV` | backend | `development` / `production` |
-| `JWT_ALGORITHM` | backend | Default: `HS256` |
-| `JWT_EXPIRE_MINUTES` | backend | Default: `10080` (7 days) |
-| `NEXT_PUBLIC_API_URL` | frontend | Backend base URL |
+| Variable | Where | Required | Description |
+|---|---|---|---|
+| `DATABASE_URL` | backend | yes | `postgresql+asyncpg://user:pass@host:5432/db` |
+| `SECRET_KEY` | backend | yes | Generate: `openssl rand -hex 32` — must be ≥32 chars |
+| `ADMIN_USERNAME` | backend | no | Admin login username (default: `admin`) |
+| `ADMIN_PASSWORD` | backend | **yes** | Admin login password — no default, app fails to start if unset |
+| `CORS_ALLOWED_ORIGINS` | backend | no | Comma-separated allowed frontend origins (default: `http://localhost:3000`) |
+| `APP_ENV` | backend | no | `development` / `production` — controls cookie security flags and SQL logging |
+| `JWT_ALGORITHM` | backend | no | Default: `HS256` |
+| `JWT_EXPIRE_MINUTES` | backend | no | Default: `10080` (7 days) |
+| `NEXT_PUBLIC_API_URL` | frontend | yes | Backend base URL |
 
 ### Tests
 
@@ -73,10 +74,11 @@ npm test
 
 | Entry point | File | What it does |
 |---|---|---|
-| FastAPI app | `backend/app/main.py` | Creates `app`, registers CORS, mounts all routers |
+| FastAPI app | `backend/app/main.py` | Creates `app`, registers CORS + rate limiter, mounts all routers |
 | Next.js root | `frontend/src/app/layout.tsx` | Root HTML shell, Geist fonts |
 | Home redirect | `frontend/src/app/page.tsx` | Redirects `/` → `/login` |
-| App auth guard | `frontend/src/app/(app)/layout.tsx` | Checks `localStorage` JWT; redirects to `/login` if missing |
+| Route guard (server) | `frontend/src/middleware.ts` | Edge middleware — checks cookie presence before page renders; redirects to `/login` or `/admin/login` |
+| Route guard (client) | `frontend/src/app/(app)/layout.tsx` | Calls `GET /auth/me`; redirects if 401 |
 | Docker | `docker-compose.yml` | Orchestrates postgres, backend, frontend |
 
 ---
@@ -87,22 +89,23 @@ npm test
 
 ```
 backend/app/
-├── main.py          # FastAPI instance, CORS, router mounts
+├── main.py          # FastAPI instance, CORS (origin-restricted), slowapi rate limiter, router mounts
 ├── config.py        # Pydantic Settings — validates all env vars at startup, crashes fast
-├── database.py      # Async SQLAlchemy engine, AsyncSessionLocal, get_db() dependency
-├── auth.py          # bcrypt hashing, JWT encode/decode, get_current_user(), get_current_admin()
+├── database.py      # Async SQLAlchemy engine (echo disabled in production), get_db()
+├── auth.py          # bcrypt hashing, JWT encode/decode, get_current_user() (cookie), get_current_admin() (cookie)
+├── limiter.py       # slowapi Limiter instance (shared across routers)
 ├── models/
 │   ├── base.py      # SQLAlchemy declarative Base
 │   ├── user.py      # AllowedUsername, User, UserTablePreference
 │   └── quiz.py      # QuizSession, QuizAnswer
 ├── schemas/
-│   ├── auth.py      # SignupRequest, LoginRequest, TokenResponse, UserProfile
+│   ├── auth.py      # SignupRequest (with validators), LoginRequest, UserProfile
 │   ├── quiz.py      # AnswerSubmit, QuizSubmitRequest, QuizSessionResponse, LeaderboardEntry
 │   └── admin.py     # AdminLoginRequest, AllowedUsernameCreate/Response
 └── routers/
     ├── health.py    # GET /health — DB ping
-    ├── auth.py      # POST /auth/signup, /auth/login · GET /auth/me
-    ├── admin.py     # POST /admin/login · CRUD /admin/usernames
+    ├── auth.py      # POST /auth/signup, /auth/login, /auth/logout · GET /auth/me
+    ├── admin.py     # POST /admin/login, /admin/logout · CRUD /admin/usernames
     ├── users.py     # GET/PUT /users/me/tables · GET /users/me/stats
     ├── quiz.py      # POST /quiz/sessions · GET /quiz/sessions
     └── leaderboard.py  # GET /leaderboard
@@ -112,6 +115,7 @@ backend/app/
 
 ```
 frontend/src/
+├── middleware.ts                # Edge route guard — checks httpOnly cookies, redirects if absent
 ├── app/
 │   ├── layout.tsx               # Root layout (Geist fonts, metadata)
 │   ├── page.tsx                 # / → redirect to /login
@@ -119,7 +123,7 @@ frontend/src/
 │   │   ├── login/page.tsx       # Child login form
 │   │   └── signup/page.tsx      # Signup (username must be pre-approved)
 │   ├── (app)/
-│   │   ├── layout.tsx           # JWT guard + nav bar
+│   │   ├── layout.tsx           # Calls GET /auth/me to verify session; nav bar + logout
 │   │   ├── profile/page.tsx     # Table selector, stats, leaderboard
 │   │   ├── quiz/page.tsx        # 10-question timed quiz
 │   │   └── quiz/results/page.tsx  # Score + answer review
@@ -127,8 +131,7 @@ frontend/src/
 │       ├── login/page.tsx       # Admin login
 │       └── page.tsx             # Manage allowed usernames
 └── lib/
-    ├── api.ts     # Typed fetch wrapper (base URL, auth header, error throw)
-    ├── auth.ts    # Token read/write/clear (localStorage), isLoggedIn()
+    ├── api.ts     # Typed fetch wrapper (base URL, credentials: "include", error throw)
     └── quiz.ts    # generateQuestions(), getStreakBadge(), STREAK_THRESHOLDS
 ```
 
@@ -155,32 +158,37 @@ frontend/src/
 ### Auth flow
 
 ```
-Signup:  POST /auth/signup
+Signup:  POST /auth/signup  (rate-limited: 5/min)
          → validate username in AllowedUsername table
          → hash password (bcrypt)
          → create User row
-         → return JWT
+         → set httpOnly cookie "token" on response (SameSite=Lax dev / None+Secure prod)
 
-Login:   POST /auth/login
+Login:   POST /auth/login  (rate-limited: 10/min)
          → fetch User by username
          → verify_password()
-         → return JWT
+         → set httpOnly cookie "token" on response
+
+Logout:  POST /auth/logout
+         → clears "token" cookie
 
 Every protected request:
-         Authorization: Bearer <token>
-         → HTTPBearer extracts token
-         → get_current_user() decodes JWT, loads User from DB
+         Browser sends "token" cookie automatically (credentials: "include")
+         → get_current_user() reads cookie, decodes JWT, loads User from DB
 ```
 
 ### Admin flow
 
 ```
-POST /admin/login
-     → compare plain-text against ADMIN_USERNAME / ADMIN_PASSWORD env vars
-     → return JWT with is_admin=true claim
+POST /admin/login  (rate-limited: 5/min)
+     → compare against ADMIN_USERNAME / ADMIN_PASSWORD env vars
+     → set httpOnly cookie "admin_token" on response
+
+POST /admin/logout
+     → clears "admin_token" cookie
 
 All /admin/* routes:
-     → get_current_admin() decodes JWT, checks is_admin flag
+     → get_current_admin() reads "admin_token" cookie, checks is_admin flag
      → manage AllowedUsername rows (add / list / delete)
 ```
 
@@ -216,8 +224,8 @@ The client never sends a score — only raw answers. The server computes everyth
 │  ┌───────────────────────────────────┐  │
 │  │  Next.js 15 (App Router)          │  │
 │  │  React 19 · Tailwind 4            │  │
-│  │  lib/api.ts ──── fetch ──────────────┼──► FastAPI :8000
-│  │  lib/auth.ts ─── localStorage     │  │
+│  │  middleware.ts ─ edge cookie check │  │
+│  │  lib/api.ts ──── fetch + cookies ────┼──► FastAPI :8000
 │  │  lib/quiz.ts ─── pure logic       │  │
 │  └───────────────────────────────────┘  │
 └─────────────────────────────────────────┘
@@ -225,7 +233,7 @@ The client never sends a score — only raw answers. The server computes everyth
 ┌─────────────────────────────────────────┐
 │  FastAPI :8000                          │
 │  SQLAlchemy (async) + asyncpg           │
-│  PyJWT · passlib[bcrypt]                │
+│  PyJWT · passlib[bcrypt] · slowapi      │
 │  Pydantic Settings + pydantic v2        │
 │            │                            │
 │            ▼                            │
@@ -240,7 +248,7 @@ The client never sends a score — only raw answers. The server computes everyth
 - Frontend never touches the DB directly — everything via REST API
 - Admin auth is env-var credentials (no DB row) with a separate JWT claim (`is_admin=true`)
 - Child auth is DB-backed JWT (7-day expiry)
-- JWT stored in `localStorage` (not httpOnly cookies)
+- JWTs are stored in httpOnly cookies (not accessible to JavaScript)
 - Question generation is entirely client-side (`lib/quiz.ts`); server only validates and scores submitted answers
 
 ---
@@ -250,16 +258,18 @@ The client never sends a score — only raw answers. The server computes everyth
 ```
 HTTP request
   │
-  ├─ main.py              CORSMiddleware (all origins in dev)
+  ├─ main.py              CORSMiddleware (origin-restricted, env-configured)
+  │                       slowapi rate limiter (429 on breach)
   │                       Route dispatch
   │
-  ├─ router/*.py          Pydantic validates request body
+  ├─ router/*.py          Pydantic validates request body (with field validators)
   │                       Depends(get_db) → opens AsyncSession
-  │                       Depends(get_current_user) → decodes JWT, loads User
+  │                       Depends(get_current_user) → reads cookie, decodes JWT, loads User
   │
   ├─ models/*.py          SQLAlchemy ORM queries (async, asyncpg driver)
   │
   └─ Response             Pydantic serialises output schema → JSON
+                          Set-Cookie on login/signup/admin-login
 ```
 
 ---
@@ -284,7 +294,7 @@ Two Railway services + one PostgreSQL plugin:
 
 | Service | Root dir | Key env vars |
 |---|---|---|
-| `backend` | `/backend` | `DATABASE_URL` (auto-linked), `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `APP_ENV=production` |
+| `backend` | `/backend` | `DATABASE_URL` (auto-linked), `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `APP_ENV=production`, `CORS_ALLOWED_ORIGINS` → frontend URL |
 | `frontend` | `/frontend` | `NEXT_PUBLIC_API_URL` → deployed backend URL |
 
 Run migrations against production:

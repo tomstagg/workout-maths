@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { api, type TokenResponse } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,8 +17,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const data = await api.post<TokenResponse>("/auth/login", { username, password });
-      setToken(data.access_token);
+      await api.post("/auth/login", { username, password });
       router.push("/profile");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
