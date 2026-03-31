@@ -78,15 +78,18 @@ export default function ProfilePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [p, lb] = await Promise.all([
-          api.get<UserProfile>("/auth/me"),
-          api.get<LeaderboardEntry[]>("/leaderboard"),
-        ]);
+        const p = await api.get<UserProfile>("/auth/me");
         setProfile(p);
         setSelectedTables(p.selected_tables);
-        setLeaderboard(lb);
       } catch {
         router.push("/login");
+        return;
+      }
+      try {
+        const lb = await api.get<LeaderboardEntry[]>("/leaderboard");
+        setLeaderboard(lb);
+      } catch {
+        // Non-critical — show profile without leaderboard
       } finally {
         setLoading(false);
       }
